@@ -212,6 +212,12 @@
 .ts-overview .ts-list-actions { display: flex; align-items: center; gap: 12px; }
 .ts-overview button.ts-sort { background: none; border: 0; padding: 0; margin: 0; box-shadow: none; font: inherit; color: inherit; white-space: nowrap; cursor: pointer; }
 .ts-overview button.ts-sort:hover, .ts-overview th[aria-sort="ascending"], .ts-overview th[aria-sort="descending"] { color: var(--ts-blue); }
+.ts-overview .ts-sort-indicator { display: inline-flex; flex-direction: column; gap: 2px; margin-inline-start: 5px; vertical-align: middle; }
+.ts-overview .ts-sort-indicator::before, .ts-overview .ts-sort-indicator::after { content: ''; width: 0; height: 0; border-inline: 3px solid transparent; opacity: .4; }
+.ts-overview .ts-sort-indicator::before { border-bottom: 4px solid var(--ts-muted); }
+.ts-overview .ts-sort-indicator::after { border-top: 4px solid var(--ts-muted); }
+.ts-overview th[aria-sort="ascending"] .ts-sort-indicator::before { border-bottom-color: var(--ts-blue); opacity: 1; }
+.ts-overview th[aria-sort="descending"] .ts-sort-indicator::after { border-top-color: var(--ts-blue); opacity: 1; }
 @media (min-width: 1001px) {
 	.modal:has(.ts-name-editor) { width: 460px; min-width: 0; max-width: calc(100vw - 48px); }
 	.ts-name-editor { font-size: 13px; }
@@ -282,6 +288,7 @@
 }
 
 
+.ts-overview .ts-placeholder { color: color-mix(in srgb, var(--ts-muted) 80%, #000); }
 .ts-overview .ts-mac { font-size: 11px; color: var(--ts-muted); white-space: nowrap; }
 .ts-overview .ts-device-label { display: flex; align-items: center; }
 .ts-overview .ts-device-label .ts-local-badge { flex-shrink: 0; }
