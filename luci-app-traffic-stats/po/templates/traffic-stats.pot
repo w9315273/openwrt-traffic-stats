@@ -496,10 +496,6 @@ msgstr ""
 msgid "The service operation failed. Check collection settings and the system log."
 msgstr ""
 
-#: htdocs/luci-static/resources/traffic-stats.js:181
-msgid "These settings have pending changes. Save or revert them in Settings before editing names."
-msgstr ""
-
 #: htdocs/luci-static/resources/traffic-stats.js:51
 msgid "This operation is not supported. Refresh the page after upgrading the plugin."
 msgstr ""
@@ -594,4 +590,12 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/traffic-stats/overview.js:173
 msgid "Waiting for the first sample"
+msgstr ""
+
+#: htdocs/luci-static/resources/traffic-stats.js
+msgid "Device names could not be saved. Check the storage directory and permissions."
+msgstr ""
+
+
+msgid "Device names could not be read. Check the storage directory and JSON file."
 msgstr ""

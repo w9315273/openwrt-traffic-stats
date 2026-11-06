@@ -1,16 +1,11 @@
 """Prepare a storage directory while the collector holds its exclusive writer lock."""
 import os
 from pathlib import Path
-import shutil
 import sqlite3
 import tempfile
 
-from . import store
-from .common import run
+from . import names, store
 from .runtime import read_runtime
-
-NAME_CONFIG = Path('/etc/config/traffic-stats-devices')
-MAIN_CONFIG = Path('/etc/config/traffic-stats')
 
 
 def sync_directory(path):
@@ -43,6 +38,7 @@ def prepare(options):
             source = previous.get('storage', {}).get('database') or source
         except (OSError, ValueError):
             pass
+    name_source = Path(source).parent / 'devices.json' if source else None
     if not source or not Path(source).is_file():
         source = str(root / 'db' / 'traffic.db')
     if not target.exists() and source and Path(source).is_file() and Path(source).resolve() != target.resolve():
@@ -67,35 +63,5 @@ def prepare(options):
     if target.exists():
         verified = store._readonly(target)
         verified.close()
-    devices = root / 'devices'
-    if not devices.exists():
-        with tempfile.TemporaryDirectory(prefix='.names-', dir=root) as staging:
-            staged = Path(staging) / NAME_CONFIG.name
-            if NAME_CONFIG.is_file():
-                shutil.copyfile(NAME_CONFIG, staged)
-            elif MAIN_CONFIG.is_file():
-                shutil.copyfile(MAIN_CONFIG, staged)
-                delta = Path(staging) / 'delta'
-                delta.mkdir()
-                args = ['uci', '-q', '-c', staging, '-t', str(delta)]
-                run(args + ['delete', NAME_CONFIG.name + '.main'])
-                run(args + ['commit', NAME_CONFIG.name])
-            else:
-                staged.write_text('')
-            staged.chmod(0o600)
-            with staged.open('rb') as stream:
-                os.fsync(stream.fileno())
-            os.replace(staged, devices)
-            sync_directory(root)
-    if not devices.is_file():
-        raise ValueError('Device naming configuration must be a regular file')
-    if NAME_CONFIG.resolve() != devices.resolve():
-        temporary_link = NAME_CONFIG.with_name(NAME_CONFIG.name + '.new')
-        try:
-            temporary_link.unlink(missing_ok=True)
-            temporary_link.symlink_to(devices)
-            os.replace(temporary_link, NAME_CONFIG)
-            sync_directory(NAME_CONFIG.parent)
-        finally:
-            temporary_link.unlink(missing_ok=True)
+    names.initialize(root / 'devices.json', name_source)
     options.database = str(target)

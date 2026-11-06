@@ -6,7 +6,8 @@
         "traffic-stats": [
           "status",
           "history",
-          "containers"
+          "containers",
+          "name_list"
         ],
         "uci": [
           "get",
@@ -14,14 +15,14 @@
         ]
       },
       "uci": [
-        "traffic-stats",
-        "traffic-stats-devices"
+        "traffic-stats"
       ]
     },
     "write": {
       "ubus": {
         "traffic-stats": [
-          "service"
+          "service",
+          "name_save"
         ],
         "uci": [
           "add",
@@ -32,8 +33,7 @@
         ]
       },
       "uci": [
-        "traffic-stats",
-        "traffic-stats-devices"
+        "traffic-stats"
       ]
     }
   }

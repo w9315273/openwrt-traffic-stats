@@ -48,6 +48,9 @@ function errorMessage(error) {
 		service_failed: _("The service operation failed. Check collection settings and the system log."),
 		database_error: _("Unable to read the history database. Check the storage location and system log."),
 		docker_unavailable: _('Unable to read containers. Check the Docker service and try again.'),
+		name_conflict: _('This rule has changed. Close and reopen the editor.'),
+		name_read_failed: _('Device names could not be read. Check the storage directory and JSON file.'),
+		name_save_failed: _('Device names could not be saved. Check the storage directory and permissions.'),
 		unknown_method: _('This operation is not supported. Refresh the page after upgrading the plugin.'),
 		history_unavailable: _("Unable to read the history database. Check the storage location and system log.")
 	};
@@ -98,13 +101,8 @@ function quality(flags) {
 	return labels.join(' / ') || _("Normal");
 }
 
-var nameGet = rpc.declare({ object: 'uci', method: 'get', params: ['config'], expect: { values: {} }, reject: true });
-var nameChanges = rpc.declare({ object: 'uci', method: 'changes', params: ['config'], expect: { changes: [] }, reject: true });
-var nameAdd = rpc.declare({ object: 'uci', method: 'add', params: ['config', 'type', 'values'], expect: { section: '' }, reject: true });
-var nameSet = rpc.declare({ object: 'uci', method: 'set', params: ['config', 'section', 'values'], reject: true });
-var nameDelete = rpc.declare({ object: 'uci', method: 'delete', params: ['config', 'section'], reject: true });
-var nameCommit = rpc.declare({ object: 'uci', method: 'commit', params: ['config'], reject: true });
-var nameRevert = rpc.declare({ object: 'uci', method: 'revert', params: ['config'], reject: true });
+var nameList = rpc.declare({ object: 'traffic-stats', method: 'name_list', expect: { '': {} }, reject: true });
+var nameSave = rpc.declare({ object: 'traffic-stats', method: 'name_save', params: ['action', 'section', 'name', 'mac', 'ip', 'revision'], expect: { '': {} }, reject: true });
 
 function displayName(device) {
 	return device.custom_name || device.hostname || device.mac || device.id;
@@ -119,20 +117,16 @@ function canonicalIP(value) {
 }
 
 async function editDeviceName(device, onSaved) {
-	var sections, nameConfig = 'traffic-stats';
+	var snapshot, sections = {};
 	try {
-		sections = await nameGet(nameConfig);
-		if (sections.main && sections.main.storage_dir) {
-			nameConfig = 'traffic-stats-devices';
-			sections = await nameGet(nameConfig);
-		}
+		snapshot = unwrap(await nameList());
+		snapshot.rules.forEach(function(item) { sections[item.section] = item; });
 	} catch (error) {
 		ui.addNotification(null, E('p', {}, [_('Unable to read name settings. %s').format(errorMessage(error))]), 'error');
 		return;
 	}
 	var writable = L.hasViewPermission(), busy = false;
-	var rules = Object.keys(sections).filter(function(id) { return sections[id]['.type'] === 'device'; });
-	rules.sort(function(a, b) { return (sections[a]['.index'] || 0) - (sections[b]['.index'] || 0); });
+	var rules = snapshot.rules.map(function(item) { return item.section; });
 	var rule = E('select', { 'class': 'ts-monospace', 'aria-label': _("Name rule") }, [ E('option', { value: '' }, _("New rule")) ].concat(rules.map(function(id) {
 		var item = sections[id];
 		return E('option', { value: id }, [(item.name || _("Unnamed")) + ' | ' +
@@ -155,13 +149,22 @@ async function editDeviceName(device, onSaved) {
 		errorBox.textContent = '';
 	}
 	rule.addEventListener('change', selected);
-	rule.value = sections[device.name_rule] ? device.name_rule : '';
+	var addresses = (device.addresses || []).map(canonicalIP), specificity = -1;
+	rule.value = '';
+	snapshot.rules.forEach(function(item) {
+		var score = (item.mac ? 2 : 0) + (item.ip ? 1 : 0);
+		if (score > specificity && (!item.mac || item.mac === (device.mac || '').toLowerCase()) &&
+			(!item.ip || addresses.indexOf(canonicalIP(item.ip)) !== -1)) {
+			rule.value = item.section;
+			specificity = score;
+		}
+	});
 	selected();
 
 	async function persist(deleting) {
 		if (busy || !writable)
 			return;
-		var id = rule.value, changed = false;
+		var id = rule.value;
 		var values = { name: name.value.trim(), mac: mac.value.trim().toLowerCase(), ip: ip.value.trim() };
 		if (!deleting) {
 			var message = !values.name || Array.from(values.name).length > 128 || /[\x00-\x1f\x7f]/.test(values.name) ? _("Enter a name of 1-128 characters without control characters.") :
@@ -176,31 +179,9 @@ async function editDeviceName(device, onSaved) {
 		[save,remove,cancel,rule,name,mac,ip].forEach(function(node) { node.disabled = true; });
 		errorBox.textContent = '';
 		try {
-			var pending = await nameChanges(nameConfig);
-			if (pending.length)
-				throw userError(_("These settings have pending changes. Save or revert them in Settings before editing names."));
-			var current = await nameGet(nameConfig);
-			if (id && (!current[id] || current[id]['.type'] !== 'device' ||
-				['name','mac','ip'].some(function(key) { return current[id][key] !== sections[id][key]; })))
-				throw userError(_("This rule has changed. Close and reopen the editor."));
-			if (deleting) {
-				if (!id) return;
-				await nameDelete(nameConfig, id);
-			} else if (id) {
-				await nameSet(nameConfig, id, values);
-			} else {
-				id = await nameAdd(nameConfig, 'device', values);
-			}
-			changed = true;
-			await nameCommit(nameConfig);
+			if (deleting && !id) return;
+			unwrap(await nameSave(deleting ? 'delete' : 'save', id, values.name, values.mac, values.ip, snapshot.revision));
 		} catch (error) {
-			if (changed) {
-				try {
-					var pending = await nameChanges(nameConfig);
-					if (pending.length && pending.every(function(change) { return change[1] === id; }))
-						await nameRevert(nameConfig);
-				} catch (cleanupError) { /* Leave pending changes visible in native UCI. */ }
-			}
 			errorBox.textContent = _('Unable to save. %s').format(errorMessage(error));
 			return;
 		} finally {

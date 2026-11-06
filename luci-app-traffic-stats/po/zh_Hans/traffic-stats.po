@@ -498,10 +498,6 @@ msgstr "已保存的设备列表暂时无法读取. 当前采集数据仍会显�
 msgid "The service operation failed. Check collection settings and the system log."
 msgstr "服务操作未完成. 请检查采集设置和系统日志."
 
-#: htdocs/luci-static/resources/traffic-stats.js:181
-msgid "These settings have pending changes. Save or revert them in Settings before editing names."
-msgstr "此配置有尚未应用的更改. 请先在设置页保存或撤销, 再编辑名称."
-
 #: htdocs/luci-static/resources/traffic-stats.js:51
 msgid "This operation is not supported. Refresh the page after upgrading the plugin."
 msgstr "不支持此操作. 升级插件后请刷新页面."
@@ -597,3 +593,11 @@ msgstr "等待采样"
 #: htdocs/luci-static/resources/view/traffic-stats/overview.js:173
 msgid "Waiting for the first sample"
 msgstr "等待第一份采样"
+
+#: htdocs/luci-static/resources/traffic-stats.js
+msgid "Device names could not be saved. Check the storage directory and permissions."
+msgstr "无法保存设备名称. 请检查存储目录和权限."
+
+
+msgid "Device names could not be read. Check the storage directory and JSON file."
+msgstr "无法读取设备名称. 请检查存储目录和 JSON 文件."

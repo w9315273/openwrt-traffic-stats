@@ -60,7 +60,7 @@ def retention(section):
     return str(months)
 
 
-def load_configuration():
+def load_configuration(include_names=True):
     values = package("traffic-stats")
     section = values.get("main", {})
     if not isinstance(section, dict):
@@ -89,8 +89,8 @@ def load_configuration():
     if root:
         result['storage_dir'] = storage.directory(root)
         result['database'] = str(Path(root) / 'traffic.db')
-        values = package('traffic-stats-devices')
-    result["name_rules"], result["invalid_name_rules"] = names.rules(values)
+    if include_names:
+        result["name_rules"], result["invalid_name_rules"] = names.rules(names.read(names.path(result))[0])
     system = package("system")
     section = next((value for value in system.values()
                     if isinstance(value, dict) and value.get(".type") == "system"), {})

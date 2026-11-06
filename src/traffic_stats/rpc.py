@@ -22,6 +22,8 @@ SCHEMA = {
     "containers": {},
     "history": {"resolution": "", "from": "", "to": "", "counter": "", "limit": 0},
     "service": {"action": ""},
+    "name_list": {},
+    "name_save": {"action": "", "section": "", "name": "", "mac": "", "ip": "", "revision": ""},
 }
 COUNTER = re.compile(r"(?:total|unknown|d_[0-9a-f]{12})_(?:up|down)\Z")
 
@@ -200,6 +202,28 @@ def service(request, configuration, service_script):
     return success({"action": action, "accepted": True})
 
 
+def name_save(request, configuration):
+    action, section = request.get('action'), request.get('section', '')
+    values = {key: request.get(key, '') for key in ('name', 'mac', 'ip')}
+    if (action not in ('save', 'delete') or not valid_string(section) or
+            (section and not re.fullmatch(r'[0-9]{1,10}', section)) or
+            (action == 'delete' and not section) or
+            any(not valid_string(value) for value in values.values())):
+        return failure('invalid_request', 'Invalid device naming request.')
+    if action == 'save':
+        checked, invalid = names.rules([values])
+        if invalid:
+            return failure('invalid_request', 'Invalid device name, MAC or IP address.')
+        values = {key: checked[0][key] for key in values}
+    try:
+        section = names.save(names.path(configuration), action, section, values, request.get('revision'))
+    except names.Conflict:
+        return failure('name_conflict', 'This rule has changed. Close and reopen the editor.')
+    except (OSError, ValueError):
+        return failure('name_save_failed', 'Device names could not be saved. Check the storage directory and permissions.')
+    return success({'section': section})
+
+
 def read_request(stream):
     request = common.read_json(stream, max_size=MAX_REQUEST)
     if not isinstance(request, dict):
@@ -223,13 +247,21 @@ def dispatch(method, request, paths):
     if method == "service" and request.get("action") == "stop":
         return service(request, {}, paths.service_script)
     try:
-        configuration = config.load_configuration()
+        configuration = config.load_configuration(include_names=method in ("status", "history"))
     except (OSError, ValueError):
         return failure("invalid_configuration", "The traffic statistics configuration is invalid.")
     if method == "status":
         return status(configuration, paths.runtime_file)
     if method == "history":
         return history(request, configuration)
+    if method == "name_list":
+        try:
+            entries, revision = names.read(names.path(configuration))
+            return success({'rules': names.rules(entries)[0], 'revision': revision})
+        except (OSError, ValueError):
+            return failure('name_read_failed', 'Device names could not be read. Check the storage directory and JSON file.')
+    if method == "name_save":
+        return name_save(request, configuration)
     return service(request, configuration, paths.service_script)
 
 
