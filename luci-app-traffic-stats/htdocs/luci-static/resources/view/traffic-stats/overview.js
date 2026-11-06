@@ -3,6 +3,14 @@
 'require poll';
 'require traffic-stats as stats';
 
+function placeholder() {
+	return E('span', { 'class': 'ts-placeholder' }, '--');
+}
+
+function rateValue(value) {
+	return Number.isFinite(value) && value >= 0 ? stats.rate(value) : placeholder();
+}
+
 function metric(label, value, direction) {
 	return E('div', { 'class': 'ts-metric ts-metric-' + direction }, [
 		E('span', { 'class': 'ts-metric-label' }, [
@@ -80,7 +88,7 @@ return view.extend({
 						sortKey = key;
 						update(latest);
 						devices.querySelector('[data-sort="' + key + '"]').focus({ preventScroll: true });
-					} }, [E('span', { 'class': 'ts-sort-label' }, label), E('span', { 'aria-hidden': 'true' }, active ? (sortDescending ? ' ↓' : ' ↑') : ' ↕')])
+					} }, [E('span', { 'class': 'ts-sort-label' }, label), E('span', { 'class': 'ts-sort-indicator', 'aria-hidden': 'true' })])
 			]);
 		}
 
@@ -130,19 +138,19 @@ return view.extend({
 			var rates = s.rates || {}, monthly = s.monthly;
 			var monthAvailable = monthly && monthly.month === (s.local_date || '').slice(0, 7);
 			function monthBytes(counter) {
-				return monthAvailable ? stats.bytes(monthly.counters[counter] || '0') : '--';
+				return monthAvailable ? stats.bytes(monthly.counters[counter] || '0') : placeholder();
 			}
 			function monthTotal(prefix) {
 				return monthAvailable ? BigInt(monthly.counters[prefix + '_up'] || '0') + BigInt(monthly.counters[prefix + '_down'] || '0') : null;
 			}
 			function totalBytes(prefix) {
 				var value = monthTotal(prefix);
-				return value === null ? '--' : stats.bytes(value);
+				return value === null ? placeholder() : stats.bytes(value);
 			}
 			stats.replace(metrics, [
 				metricGroup(_('Current rates'), [
-					metric(_('Upload rate'), live ? stats.rate((rates.total_up || {}).bytes_per_second) : _('Unavailable'), 'up'),
-					metric(_('Download rate'), live ? stats.rate((rates.total_down || {}).bytes_per_second) : _('Unavailable'), 'down')
+					metric(_('Upload rate'), rateValue(live ? (rates.total_up || {}).bytes_per_second : null), 'up'),
+					metric(_('Download rate'), rateValue(live ? (rates.total_down || {}).bytes_per_second : null), 'down')
 				], E('span', { 'class': 'ts-inline-state ts-state-' + statusKind }, statusText)),
 				metricGroup(_('Monthly usage'), [
 					metric(_('Monthly upload'), monthBytes('total_up'), 'up'),
@@ -182,10 +190,10 @@ return view.extend({
 								click: function() { return stats.editDeviceName(device, function() { return Promise.resolve(inFlight).then(refresh); }); } }, [E('span', { 'class': 'ts-device-name-text' + (!device.custom_name && !device.hostname ? ' ts-monospace' : '') }, [stats.displayName(device)]), E('span', { 'class': 'ts-device-edit', 'aria-hidden': 'true' })])
 						].filter(Boolean))]),
 						E('td', { 'class': 'ts-mac' }, [device.mac || device.id]),
-						E('td', { 'class': 'ts-addresses' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') === -1; }).join(' / ') || '--']),
-						E('td', { 'class': 'ts-addresses' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') !== -1; }).join(' / ') || '--']),
-						E('td', { 'class': 'ts-numeric' }, live && device.up ? stats.rate(upload.bytes_per_second) : _('Unavailable')),
-						E('td', { 'class': 'ts-numeric' }, live && device.down ? stats.rate(download.bytes_per_second) : _('Unavailable')),
+						E('td', { 'class': 'ts-addresses' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') === -1; }).join(' / ') || placeholder()]),
+						E('td', { 'class': 'ts-addresses' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') !== -1; }).join(' / ') || placeholder()]),
+						E('td', { 'class': 'ts-numeric' }, rateValue(live && device.up ? upload.bytes_per_second : null)),
+						E('td', { 'class': 'ts-numeric' }, rateValue(live && device.down ? download.bytes_per_second : null)),
 						E('td', { 'class': 'ts-numeric' }, monthBytes('d_' + device.id + '_up')),
 						E('td', { 'class': 'ts-numeric' }, monthBytes('d_' + device.id + '_down')),
 						E('td', { 'class': 'ts-numeric' }, totalBytes('d_' + device.id))
@@ -193,11 +201,11 @@ return view.extend({
 				});
 				rows.push(E('tr', { 'class': 'ts-unknown' }, [
 					E('td', {}, [ E('strong', {}, _('Unidentified devices')) ]),
-					E('td', {}, '--'),
-					E('td', {}, '--'),
-					E('td', {}, '--'),
-					E('td', { 'class': 'ts-numeric' }, live ? stats.rate((rates.unknown_up || {}).bytes_per_second) : _('Unavailable')),
-					E('td', { 'class': 'ts-numeric' }, live ? stats.rate((rates.unknown_down || {}).bytes_per_second) : _('Unavailable')),
+					E('td', {}, placeholder()),
+					E('td', {}, placeholder()),
+					E('td', {}, placeholder()),
+					E('td', { 'class': 'ts-numeric' }, rateValue(live ? (rates.unknown_up || {}).bytes_per_second : null)),
+					E('td', { 'class': 'ts-numeric' }, rateValue(live ? (rates.unknown_down || {}).bytes_per_second : null)),
 					E('td', { 'class': 'ts-numeric' }, monthBytes('unknown_up')),
 					E('td', { 'class': 'ts-numeric' }, monthBytes('unknown_down')),
 					E('td', { 'class': 'ts-numeric' }, totalBytes('unknown'))
