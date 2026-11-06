@@ -86,58 +86,52 @@ return view.extend({
 		wan.validate = interfaceValidation(lan);
 		var containerData = data[1] || {}, containers = containerData.containers;
 		var containersAvailable = !containerData.load_error && Array.isArray(containers);
-		containers = containersAvailable ? containers : [];
 		var excluded = containerData.excluded_names || [];
-		var configured = uci.get('traffic-stats', 'main', 'proxy_containers');
-		var legacyIPs = deviceValues(uci.get('traffic-stats', 'main', 'proxy_ips'));
-		var selected = configured == null ? containers.filter(function(container) {
-			return (container.addresses || []).some(function(address) { return legacyIPs.indexOf(address) !== -1; });
-		}).map(function(container) { return container.name; }) : deviceValues(configured);
-		var unsupported = selected.filter(function(name) { return excluded.indexOf(name) !== -1; });
-		selected = selected.filter(function(name) { return excluded.indexOf(name) === -1; });
-		var description = _("Select multiple containers; addresses update automatically. Host mode is excluded. Only client-side traffic is counted to avoid duplicates.");
-		if (!containersAvailable)
-			description = _("Could not load containers. Check Docker and refresh. The current configuration is preserved and cannot be edited yet.");
-		else if (unsupported.length)
-			description += ' ' + _("Containers using unsupported network modes will be removed on save.");
-		if (containersAvailable && configured == null && legacyIPs.some(function(address) {
-			return !containers.some(function(container) { return (container.addresses || []).indexOf(address) !== -1; });
-		}))
-			description += ' ' + _("Some old IP addresses have no matching container. Select again; old IP settings will be removed on save.");
-		var ContainerSelect = form.MultiValue.extend({
-			transformChoices: function() {
-				return this.super('transformChoices', arguments) || {};
-			}
-		});
-		var proxies = advanced.option(ContainerSelect, 'proxy_containers', _("Proxy containers"), description);
-		proxies.create = false;
-		proxies.rmempty = true;
-		proxies.forcewrite = true;
-		proxies.readonly = !containersAvailable;
-		proxies.placeholder = containers.length || selected.length ? _("Select proxy containers") : _("No containers available");
-		var known = Object.create(null);
-		containers.forEach(function(container) {
-			if (excluded.indexOf(container.name) !== -1) return;
-			known[container.name] = true;
-			var label = container.state === 'running' ? container.name : _('%s (not running)').format(container.name);
-			proxies.value(container.name, E('span', {}, [label, ' - ', E('span', { 'class': 'ts-monospace' },
-				[(container.addresses || []).join(', ') || _("No address")])]));
-		});
-		selected.forEach(function(name) {
-			if (!known[name]) {
-				known[name] = true;
-				proxies.value(name, E('span', {}, [_('%s (currently unavailable)').format(name)]));
-			}
-		});
-		proxies.cfgvalue = function() { return selected; };
-		proxies.write = function(sectionId, value) {
-			if (!containersAvailable) return;
-			var values = deviceValues(value).filter(function(name) { return known[name] && excluded.indexOf(name) === -1; });
-			if (values.length) uci.set('traffic-stats', sectionId, 'proxy_containers', values);
-			else uci.unset('traffic-stats', sectionId, 'proxy_containers');
-			uci.unset('traffic-stats', sectionId, 'proxy_ips');
-		};
-		proxies.remove = function(sectionId) { this.write(sectionId, []); };
+		containers = containersAvailable ? containers.filter(function(container) {
+			return excluded.indexOf(container.name) === -1;
+		}) : [];
+		if (containers.length) {
+			var configured = uci.get('traffic-stats', 'main', 'proxy_containers');
+			var legacyIPs = deviceValues(uci.get('traffic-stats', 'main', 'proxy_ips'));
+			var selected = configured == null ? containers.filter(function(container) {
+				return (container.addresses || []).some(function(address) { return legacyIPs.indexOf(address) !== -1; });
+			}).map(function(container) { return container.name; }) : deviceValues(configured);
+			var unsupported = selected.filter(function(name) { return excluded.indexOf(name) !== -1; });
+			selected = selected.filter(function(name) { return excluded.indexOf(name) === -1; });
+			var description = _("Select multiple containers; addresses update automatically. Host mode is excluded. Only client-side traffic is counted to avoid duplicates.");
+			if (unsupported.length)
+				description += ' ' + _("Containers using unsupported network modes will be removed on save.");
+			if (configured == null && legacyIPs.some(function(address) {
+				return !containers.some(function(container) { return (container.addresses || []).indexOf(address) !== -1; });
+			}))
+				description += ' ' + _("Some old IP addresses have no matching container. Select again; old IP settings will be removed on save.");
+			var proxies = advanced.option(form.MultiValue, 'proxy_containers', _("Proxy containers"), description);
+			proxies.create = false;
+			proxies.rmempty = true;
+			proxies.forcewrite = true;
+			proxies.placeholder = _("Select proxy containers");
+			var known = Object.create(null);
+			containers.forEach(function(container) {
+				known[container.name] = true;
+				var label = container.state === 'running' ? container.name : _('%s (not running)').format(container.name);
+				proxies.value(container.name, E('span', {}, [label, ' - ', E('span', { 'class': 'ts-monospace' },
+					[(container.addresses || []).join(', ') || _("No address")])]));
+			});
+			selected.forEach(function(name) {
+				if (!known[name]) {
+					known[name] = true;
+					proxies.value(name, E('span', {}, [_('%s (currently unavailable)').format(name)]));
+				}
+			});
+			proxies.cfgvalue = function() { return selected; };
+			proxies.write = function(sectionId, value) {
+				var values = deviceValues(value).filter(function(name) { return known[name] && excluded.indexOf(name) === -1; });
+				if (values.length) uci.set('traffic-stats', sectionId, 'proxy_containers', values);
+				else uci.unset('traffic-stats', sectionId, 'proxy_containers');
+				uci.unset('traffic-stats', sectionId, 'proxy_ips');
+			};
+			proxies.remove = function(sectionId) { this.write(sectionId, []); };
+		}
 		var directory = advanced.option(form.Value, 'storage_dir', _("Storage directory"),
 			_("Absolute path on persistent storage: traffic.db stores usage, devices stores device names. Mount external storage first."));
 		directory.default = '/etc/traffic-stats';
