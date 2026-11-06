@@ -94,10 +94,6 @@ msgstr "采集已停止"
 msgid "Containers using unsupported network modes will be removed on save."
 msgstr "不支持的容器网络模式将在保存后移除."
 
-#: htdocs/luci-static/resources/view/traffic-stats/settings.js:100
-msgid "Could not load containers. Check Docker and refresh. The current configuration is preserved and cannot be edited yet."
-msgstr "容器列表读取失败, 请检查 Docker 后刷新. 原配置保留, 暂不可修改."
-
 #: htdocs/luci-static/resources/view/traffic-stats/overview.js:143
 msgid "Current rates"
 msgstr "实时速率"
@@ -317,10 +313,6 @@ msgstr "暂无地址"
 #: htdocs/luci-static/resources/traffic-stats.js:44
 msgid "No collection status yet. Enable and start the service first."
 msgstr "尚无采集状态. 请先启用并启动服务."
-
-#: htdocs/luci-static/resources/view/traffic-stats/settings.js:112
-msgid "No containers available"
-msgstr "没有可选容器"
 
 #: htdocs/luci-static/resources/traffic-stats.js:220
 msgid "No current IP address"
