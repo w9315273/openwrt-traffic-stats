@@ -223,7 +223,7 @@ async function editDeviceName(device, onSaved) {
 		E('p', { 'class': 'ts-name-help' }, _("Names are display labels only. Deleting a rule restores another matching rule or the hostname.")),
 		errorBox,
 		E('div', { 'class': 'ts-name-actions' }, [
-			E('a', { href: L.url('admin/network/traffic-stats/history') + '?device=' + encodeURIComponent(device.id) }, _("View device history")),
+			E('a', { href: L.url('admin/services/traffic-stats/history') + '?device=' + encodeURIComponent(device.id) }, _("View device history")),
 			E('div', {}, [remove,cancel,save])
 		])
 	]) ]);
@@ -268,7 +268,7 @@ return baseclass.extend({
 				id: 'traffic-stats-style', rel: 'stylesheet', href: L.resource('traffic-stats.css')
 			}));
 	},
-	url: function(page) { return L.url('admin/network/traffic-stats/' + page); },
+	url: function(page) { return L.url('admin/services/traffic-stats/' + page); },
 	notice: function(message, kind) {
 		return E('div', { 'class': 'ts-notice ts-' + (kind || 'info'), role: 'status' }, [message]);
 	},

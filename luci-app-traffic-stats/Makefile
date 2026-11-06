@@ -1,11 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_VERSION:=1.0
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 PKG_LICENSE:=GPL-3.0-only
 LUCI_TITLE:=Per-device traffic statistics
 LUCI_DEPENDS:=+luci-base +traffic-stats
 LUCI_PKGARCH:=all
+# csstidy drops modern @supports rules used for theme colors and layout.
+LUCI_MINIFY_CSS:=0
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

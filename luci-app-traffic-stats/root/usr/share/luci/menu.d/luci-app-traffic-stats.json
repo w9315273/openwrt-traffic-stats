@@ -1,5 +1,5 @@
 {
-  "admin/network/traffic-stats": {
+  "admin/services/traffic-stats": {
     "title": "Traffic Statistics",
     "order": 70,
     "action": {
@@ -11,7 +11,7 @@
       ]
     }
   },
-  "admin/network/traffic-stats/overview": {
+  "admin/services/traffic-stats/overview": {
     "title": "Overview",
     "order": 10,
     "action": {
@@ -19,7 +19,7 @@
       "path": "traffic-stats/overview"
     }
   },
-  "admin/network/traffic-stats/history": {
+  "admin/services/traffic-stats/history": {
     "title": "History",
     "order": 20,
     "action": {
@@ -27,7 +27,7 @@
       "path": "traffic-stats/history"
     }
   },
-  "admin/network/traffic-stats/settings": {
+  "admin/services/traffic-stats/settings": {
     "title": "Settings",
     "order": 30,
     "action": {
