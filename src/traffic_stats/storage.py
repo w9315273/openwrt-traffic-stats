@@ -11,7 +11,6 @@ from .runtime import read_runtime
 
 NAME_CONFIG = Path('/etc/config/traffic-stats-devices')
 MAIN_CONFIG = Path('/etc/config/traffic-stats')
-DEFAULT_DIRECTORY = '/etc/traffic-stats'
 
 
 def sync_directory(path):
@@ -32,10 +31,10 @@ def directory(value):
 
 def prepare(options):
     root = Path(directory(options.storage_dir))
-    if str(root) == DEFAULT_DIRECTORY:
+    try:
         root.mkdir(mode=0o700, exist_ok=True)
-    if not root.is_dir():
-        raise ValueError('Storage directory must already exist and be mounted')
+    except FileNotFoundError as error:
+        raise ValueError('Parent storage directory must exist; mount external storage first') from error
     target = root / 'traffic.db'
     source = options.database
     if options.runtime_file:
@@ -46,7 +45,6 @@ def prepare(options):
             pass
     if not source or not Path(source).is_file():
         source = str(root / 'db' / 'traffic.db')
-    # A completed backup is published atomically. Existing destination data wins.
     if not target.exists() and source and Path(source).is_file() and Path(source).resolve() != target.resolve():
         fd, temporary = tempfile.mkstemp(prefix='.migrate-', suffix='.db', dir=root)
         os.close(fd)
@@ -77,7 +75,6 @@ def prepare(options):
                 shutil.copyfile(NAME_CONFIG, staged)
             elif MAIN_CONFIG.is_file():
                 shutil.copyfile(MAIN_CONFIG, staged)
-                # Use UCI's own parser/serializer, preserving Unicode and quoting.
                 delta = Path(staging) / 'delta'
                 delta.mkdir()
                 args = ['uci', '-q', '-c', staging, '-t', str(delta)]
