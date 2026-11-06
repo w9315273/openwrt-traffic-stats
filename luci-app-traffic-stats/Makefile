@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=1.0
+PKG_VERSION:=1.0.0
 PKG_RELEASE:=5
 PKG_LICENSE:=GPL-3.0-only
 LUCI_TITLE:=Per-device traffic statistics

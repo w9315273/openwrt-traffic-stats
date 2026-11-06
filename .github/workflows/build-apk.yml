@@ -48,8 +48,9 @@ jobs:
           if versions[0] != versions[1]:
               raise SystemExit('Frontend and backend versions must match')
           version, release = versions[0]
-          if os.environ['GITHUB_REF'].startswith('refs/tags/v') and os.environ['GITHUB_REF_NAME'] != 'v' + version:
-              raise SystemExit(f'Tag must match package version: v{version}')
+          expected_tag = f'v{version}-{release}'
+          if os.environ['GITHUB_REF'].startswith('refs/tags/v') and os.environ['GITHUB_REF_NAME'] != expected_tag:
+              raise SystemExit(f'Tag must match package version and release: {expected_tag}')
           if not os.environ['GITHUB_REF'].startswith('refs/tags/v'):
               run_number = os.environ['GITHUB_RUN_NUMBER']
               if not run_number.isdigit():
@@ -216,7 +217,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
-          prerelease: ${{ startsWith(github.ref_name, 'dev-') || contains(github.ref_name, '-') }}
-          make_latest: ${{ contains(github.ref_name, '-') && 'false' || 'true' }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          make_latest: ${{ startsWith(github.ref, 'refs/tags/v') && 'true' || 'false' }}
           fail_on_unmatched_files: true
           files: .local/dist/*.apk
