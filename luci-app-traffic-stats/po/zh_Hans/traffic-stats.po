@@ -1,0 +1,599 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-traffic-stats\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_Hans\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:96
+msgid "%s (Local)"
+msgstr "%s (本机)"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:124
+msgid "%s (currently unavailable)"
+msgstr "%s (当前不可用)"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:118
+msgid "%s (not running)"
+msgstr "%s (未运行)"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:116
+msgid "%s device %s is disconnected."
+msgstr "%s 设备 %s 尚未连接."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:116
+msgid "%s device %s is not present."
+msgstr "%s 设备 %s 暂不存在."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:156
+msgid "%s · %s"
+msgstr "%s · %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:138
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:137
+msgid "Absolute path on persistent storage: traffic.db stores usage, devices stores device names. Mount external storage first."
+msgstr "持久存储的绝对路径: traffic.db 保存用量, devices 保存设备名称. 外部存储须先挂载."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:42
+msgid "Advanced settings"
+msgstr "高级设置"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:92
+msgid "All devices"
+msgstr "全部设备"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:151
+msgid "Background sampling frequency, independent of the overview refresh interval."
+msgstr "后台采样频率, 与概览刷新间隔独立."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:102
+msgid "Cannot read collection status. Check the service and system log."
+msgstr "无法读取采集状态. 请检查服务是否正常运行和系统日志."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:214
+msgid "Check the LAN connection and device addresses. No usage can currently be attributed to a device."
+msgstr "检查 LAN 连接和设备地址. 当前没有可归属的设备用量."
+
+#: htdocs/luci-static/resources/traffic-stats.js:147
+msgid "Close"
+msgstr "关闭"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:98
+msgid "Collection has stopped. Saved history is still available. Check the collection configuration in Settings."
+msgstr "采集服务已停止. 已保存的历史仍可查询, 可在设置页检查采集配置."
+
+#: htdocs/luci-static/resources/traffic-stats.js:95
+msgid "Collection interrupted"
+msgstr "采集中断"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:96
+msgid "Collection is disabled. Select LAN / WAN devices and enable the service in Settings."
+msgstr "采集尚未启用. 请在设置页选择 LAN / WAN 接口并启用服务."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:127
+msgid "Collection normal"
+msgstr "采集正常"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:100
+msgid "Collection status is stale. Current rates are unavailable; totals show the last successful sample."
+msgstr "最近采集状态已过期. 当前速率不可用, 下方累计值为上次成功采集的结果."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:126
+msgid "Collection status unknown"
+msgstr "采集状态未知"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:126
+msgid "Collection stopped"
+msgstr "采集已停止"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:102
+msgid "Containers using unsupported network modes will be removed on save."
+msgstr "不支持的容器网络模式将在保存后移除."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:100
+msgid "Could not load containers. Check Docker and refresh. The current configuration is preserved and cannot be edited yet."
+msgstr "容器列表读取失败, 请检查 Docker 后刷新. 原配置保留, 暂不可修改."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:143
+msgid "Current rates"
+msgstr "实时速率"
+
+#: htdocs/luci-static/resources/traffic-stats.js:141 htdocs/luci-static/resources/traffic-stats.js:221
+msgid "Custom name"
+msgstr "自定义名称"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:181
+msgid "Daily usage could not be updated. The chart and list still show the previous results. %s"
+msgstr "当天用量未能更新, 图表和列表仍显示上次加载结果. %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:155
+msgid "Database write interval"
+msgstr "数据库写入间隔"
+
+#: htdocs/luci-static/resources/traffic-stats.js:146
+msgid "Delete rule"
+msgstr "删除规则"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:204 htdocs/luci-static/resources/view/traffic-stats/overview.js:207
+msgid "Device"
+msgstr "设备"
+
+#: htdocs/luci-static/resources/traffic-stats.js:216
+msgid "Device name"
+msgstr "设备名称"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:81
+msgid "Device names must be 1-15 letters, digits, underscores, dots or hyphens."
+msgstr "设备名须为 1-15 个字母, 数字, 下划线, 点或短横线."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:62
+msgid "Devices"
+msgstr "设备列表"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:204 htdocs/luci-static/resources/view/traffic-stats/history.js:277 htdocs/luci-static/resources/view/traffic-stats/history.js:86
+msgid "Download"
+msgstr "下载"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:208
+msgid "Download /s"
+msgstr "下载 /s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:145
+msgid "Download rate"
+msgstr "下载速率"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:181
+msgid "Edit device name: %s"
+msgstr "编辑设备名称: %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:174
+msgid "Enable and start collection to show current device usage. Saved usage is available on the History page."
+msgstr "启用并启动采集后显示当前设备用量. 已保存的设备历史可以在历史页查询."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:43
+msgid "Enable collection"
+msgstr "启用采集"
+
+#: htdocs/luci-static/resources/traffic-stats.js:47
+msgid "Enable collection in Settings and save and apply before starting the service."
+msgstr "请先在设置页启用采集, 保存并应用后再启动服务."
+
+#: htdocs/luci-static/resources/traffic-stats.js:222
+msgid "Enter MAC or IP; if both are set, both must match. Priority: MAC + IP > MAC > IP, then configuration order."
+msgstr "MAC / IP 至少填一项, 同填需同时匹配. 优先级: MAC + IP > MAC > IP, 同级按配置顺序."
+
+#: htdocs/luci-static/resources/traffic-stats.js:167
+msgid "Enter a name of 1-128 characters without control characters."
+msgstr "请输入 1-128 个字符的名称, 不能包含控制字符."
+
+#: htdocs/luci-static/resources/traffic-stats.js:169
+msgid "Enter a valid MAC address."
+msgstr "请输入有效的 MAC 地址."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:168
+msgid "Enter a whole duration from 1s to 24h using s, m or h."
+msgstr "请填写 1s-24h 范围内的整数时长, 支持 s / m / h."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:146
+msgid "Enter an absolute directory path without control characters or . and .. path segments."
+msgstr "请填写绝对目录路径, 不能包含控制字符或 . 和 .. 路径段."
+
+#: htdocs/luci-static/resources/traffic-stats.js:168
+msgid "Enter at least one MAC or IP address."
+msgstr "MAC 和 IP 至少填写一个."
+
+#: htdocs/luci-static/resources/traffic-stats.js:170
+msgid "Enter one IPv4 or IPv6 address without a subnet or interface suffix."
+msgstr "请输入单个 IPv4 或 IPv6 地址, 不含网段或接口后缀."
+
+#: htdocs/luci-static/resources/traffic-stats.js:141
+msgid "Example: My laptop"
+msgstr "例如: 我的笔记本"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:120
+msgid "Flow offloading is enabled. Some traffic may bypass accounting, so usage may be incomplete."
+msgstr "检测到流量卸载规则. 部分流量可能绕过计数, 当前用量可能不完整."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:41
+msgid "General settings"
+msgstr "一般设置"
+
+#: root/usr/share/luci/menu.d/luci-app-traffic-stats.json
+msgid "History"
+msgstr "历史"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:106
+msgid "History could not be saved. Pending usage will be retried. Check the database storage and system log."
+msgstr "历史保存失败. 暂存用量正在等待重试. 请检查数据库所在存储是否可用和系统日志."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:171
+msgid "History retention"
+msgstr "历史保留周期"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:207
+msgid "IPv4 address"
+msgstr "IPv4 地址"
+
+#: htdocs/luci-static/resources/traffic-stats.js:143
+msgid "IPv4 or IPv6, optional"
+msgstr "IPv4 或 IPv6, 可留空"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:207
+msgid "IPv6 address"
+msgstr "IPv6 地址"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:297
+msgid "Incomplete records / uncertain timing"
+msgstr "记录不完整 / 时间归属不确定"
+
+#: htdocs/luci-static/resources/traffic-stats.js:45 htdocs/luci-static/resources/traffic-stats.js:46
+msgid "Invalid collection settings. Check the interfaces and database path in Settings."
+msgstr "采集配置无效. 请在设置页检查接口和数据库路径."
+
+#: htdocs/luci-static/resources/traffic-stats.js:41
+msgid "Invalid query parameters. Check the dates and query range."
+msgstr "查询参数无效. 请检查日期和查询范围."
+
+#: htdocs/luci-static/resources/traffic-stats.js:61
+msgid "Invalid traffic value"
+msgstr "无效的流量数值"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:82
+msgid "LAN and WAN network devices must not overlap."
+msgstr "LAN 与 WAN 网络设备不能重叠."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:69
+msgid "LAN network devices"
+msgstr "LAN 网络设备"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:169
+msgid "Loading..."
+msgstr "加载中..."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:206 htdocs/luci-static/resources/view/traffic-stats/overview.js:180
+msgid "Local"
+msgstr "本机"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:207
+msgid "MAC address"
+msgstr "MAC 地址"
+
+#: htdocs/luci-static/resources/traffic-stats.js:143 htdocs/luci-static/resources/traffic-stats.js:221
+msgid "Match IP"
+msgstr "匹配 IP"
+
+#: htdocs/luci-static/resources/traffic-stats.js:142 htdocs/luci-static/resources/traffic-stats.js:221
+msgid "Match MAC"
+msgstr "匹配 MAC"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:57 htdocs/luci-static/resources/view/traffic-stats/overview.js:149 htdocs/luci-static/resources/view/traffic-stats/overview.js:209
+msgid "Monthly download"
+msgstr "本月下载"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:57 htdocs/luci-static/resources/view/traffic-stats/overview.js:209
+msgid "Monthly total"
+msgstr "本月累计"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:57 htdocs/luci-static/resources/view/traffic-stats/overview.js:148 htdocs/luci-static/resources/view/traffic-stats/overview.js:209
+msgid "Monthly upload"
+msgstr "本月上传"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:147
+msgid "Monthly usage"
+msgstr "本月用量"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:159
+msgid "Monthly usage could not be updated. %s"
+msgstr "月总量未能更新. %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:159
+msgid "Monthly usage could not be updated. Still showing %s. %s"
+msgstr "月总量未能更新, 仍显示 %s 的结果. %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:171
+msgid "Months: 0 keeps history forever; 1-120 includes the current month. Expired months are deleted from details and daily totals."
+msgstr "单位: 月, 0 为无限保存, 1-120 包含当月. 到期删除整月曲线和每日汇总."
+
+#: htdocs/luci-static/resources/traffic-stats.js:136
+msgid "Name rule"
+msgstr "命名规则"
+
+#: htdocs/luci-static/resources/traffic-stats.js:223
+msgid "Names are display labels only. Deleting a rule restores another matching rule or the hostname."
+msgstr "名称仅用于显示; 删除后使用其他规则或主机名."
+
+#: htdocs/luci-static/resources/traffic-stats.js:136
+msgid "New rule"
+msgstr "新建规则"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:117
+msgid "No address"
+msgstr "暂无地址"
+
+#: htdocs/luci-static/resources/traffic-stats.js:44
+msgid "No collection status yet. Enable and start the service first."
+msgstr "尚无采集状态. 请先启用并启动服务."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:112
+msgid "No containers available"
+msgstr "没有可选容器"
+
+#: htdocs/luci-static/resources/traffic-stats.js:220
+msgid "No current IP address"
+msgstr "暂无当前 IP 地址"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:311
+msgid "No detailed records for this day."
+msgstr "当天没有时段明细."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:202
+msgid "No device usage for this day"
+msgstr "当天暂无设备用量"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:214
+msgid "No downstream devices found"
+msgstr "尚未发现下游设备"
+
+#: htdocs/luci-static/resources/traffic-stats.js:39
+msgid "No history database yet. Enable collection to start recording usage."
+msgstr "尚未建立历史数据库. 启用采集后会开始记录新的用量."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:138 htdocs/luci-static/resources/view/traffic-stats/history.js:294
+msgid "No records"
+msgstr "无记录"
+
+#: htdocs/luci-static/resources/traffic-stats.js:86
+msgid "None yet"
+msgstr "尚无"
+
+#: htdocs/luci-static/resources/traffic-stats.js:98
+msgid "Normal"
+msgstr "正常"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:112
+msgid "Only part of the saved device list is shown because it exceeds the limit."
+msgstr "保存的设备较多, 当前仅显示其中一部分."
+
+#: htdocs/luci-static/resources/traffic-stats.js:142
+msgid "Optional"
+msgstr "可留空"
+
+#: root/usr/share/luci/menu.d/luci-app-traffic-stats.json
+msgid "Overview"
+msgstr "概览"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:107
+msgid "Proxy containers"
+msgstr "代理容器"
+
+#: htdocs/luci-static/resources/traffic-stats.js:97
+msgid "Recovered after restart"
+msgstr "重启后补采"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:65
+msgid "Refresh"
+msgstr "刷新"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:64
+msgid "Refresh interval"
+msgstr "刷新间隔"
+
+#: htdocs/luci-static/resources/traffic-stats.js:26
+msgid "Request failed"
+msgstr "请求失败"
+
+#: htdocs/luci-static/resources/traffic-stats.js:221
+msgid "Rule"
+msgstr "规则"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:124
+msgid "Sample flags: %s"
+msgstr "本次采集标记: %s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:127
+msgid "Samples stale"
+msgstr "采样已过期"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:127
+msgid "Sampling failed"
+msgstr "采样失败"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:151
+msgid "Sampling interval (seconds)"
+msgstr "采样间隔 (秒)"
+
+#: htdocs/luci-static/resources/traffic-stats.js:145
+msgid "Save name"
+msgstr "保存名称"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:202
+msgid "Select another date in the calendar."
+msgstr "可选择日历中的其他日期."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:79
+msgid "Select at least one network device when collection is enabled."
+msgstr "启用采集时至少选择一个网络设备."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:43
+msgid "Select device"
+msgstr "选择设备"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:50
+msgid "Select month"
+msgstr "选择月份"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:98
+msgid "Select multiple containers; addresses update automatically. Host mode is excluded. Only client-side traffic is counted to avoid duplicates."
+msgstr "可多选, 地址自动更新, 不含 host 模式. 仅统计客户端侧流量, 避免重复计入."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:70
+msgid "Select multiple devices or enter names, e.g. br-lan. Use device names, not logical interfaces."
+msgstr "支持多选或自定义, 如 br-lan. 请填设备名, 非逻辑接口名."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:72
+msgid "Select multiple devices or enter names, e.g. eth0, pppoe-wan. Must differ from LAN devices."
+msgstr "支持多选或自定义, 如 eth0, pppoe-wan. 不能与 LAN 重复."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:112
+msgid "Select proxy containers"
+msgstr "请选择代理容器"
+
+#: root/usr/share/luci/menu.d/luci-app-traffic-stats.json
+msgid "Settings"
+msgstr "设置"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:110
+msgid "Some device name rules are invalid and were ignored. Check their names and MAC / IP settings."
+msgstr "部分设备名称规则无效, 已忽略. 请检查名称及 MAC / IP 配置."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:106
+msgid "Some old IP addresses have no matching container. Select again; old IP settings will be removed on save."
+msgstr "部分原 IP 未匹配容器, 请重新选择; 保存后移除旧 IP 配置."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:178
+msgid "Some records are truncated or use different collection timezones. Check the recorded timezones."
+msgstr "存在截断记录或多个采集时区, 请结合记录时区查看."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:136
+msgid "Storage directory"
+msgstr "存储目录"
+
+#: htdocs/luci-static/resources/traffic-stats.js:94
+msgid "System time changed"
+msgstr "系统时间变化"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:122
+msgid "System time is not yet valid for history. Usage will be recovered when time is valid and marked as having uncertain timing."
+msgstr "系统时间尚不可用于历史日期. 流量会在时间恢复后补记, 并标记时间归属不确定."
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:169
+msgid "The database write interval must not be shorter than the sampling interval."
+msgstr "数据库写入间隔不能小于采样间隔."
+
+#: htdocs/luci-static/resources/traffic-stats.js:42 htdocs/luci-static/resources/traffic-stats.js:43
+msgid "The date range is too large. Reduce it or use a coarser resolution."
+msgstr "日期范围超出限制. 请缩小范围或调整分辨率."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:104
+msgid "The latest sample failed. Check the network device settings and system log."
+msgstr "最近一次采集失败. 请检查接口设置和系统日志."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:157
+msgid "The query limit was exceeded. Monthly totals include only the returned records."
+msgstr "记录超过查询限制, 月度合计仅包含返回部分."
+
+#: htdocs/luci-static/resources/traffic-stats.js:55
+msgid "The request could not be completed. Please try again or check the system log."
+msgstr "请求未完成. 请稍后重试或检查系统日志."
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:108
+msgid "The saved device list is unavailable. Current collection data is still shown."
+msgstr "已保存的设备列表暂时无法读取. 当前采集数据仍会显示."
+
+#: htdocs/luci-static/resources/traffic-stats.js:48
+msgid "The service operation failed. Check collection settings and the system log."
+msgstr "服务操作未完成. 请检查采集设置和系统日志."
+
+#: htdocs/luci-static/resources/traffic-stats.js:181
+msgid "These settings have pending changes. Save or revert them in Settings before editing names."
+msgstr "此配置有尚未应用的更改. 请先在设置页保存或撤销, 再编辑名称."
+
+#: htdocs/luci-static/resources/traffic-stats.js:51
+msgid "This operation is not supported. Refresh the page after upgrading the plugin."
+msgstr "不支持此操作. 升级插件后请刷新页面."
+
+#: htdocs/luci-static/resources/traffic-stats.js:185
+msgid "This rule has changed. Close and reopen the editor."
+msgstr "这条规则已被修改. 请关闭卡片后重新打开."
+
+#: htdocs/luci-static/resources/traffic-stats.js:96
+msgid "Time zone changed"
+msgstr "时区变化"
+
+#: htdocs/luci-static/resources/traffic-stats.js:40
+msgid "Too much data returned. Use a shorter date range or daily/monthly records."
+msgstr "返回数据过多. 请缩小日期范围或改用每日/月度查询."
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:204
+msgid "Total"
+msgstr "合计"
+
+#: root/usr/share/luci/menu.d/luci-app-traffic-stats.json
+msgid "Traffic Statistics"
+msgstr "流量统计"
+
+#: htdocs/luci-static/resources/traffic-stats.js:50
+msgid "Unable to read containers. Check the Docker service and try again."
+msgstr "无法读取容器. 请检查 Docker 服务后重试."
+
+#: htdocs/luci-static/resources/traffic-stats.js:130
+msgid "Unable to read name settings. %s"
+msgstr "无法读取名称配置. %s"
+
+#: htdocs/luci-static/resources/traffic-stats.js:49 htdocs/luci-static/resources/traffic-stats.js:52
+msgid "Unable to read the history database. Check the storage location and system log."
+msgstr "无法读取历史数据库. 请检查存储位置和系统日志."
+
+#: htdocs/luci-static/resources/traffic-stats.js:204
+msgid "Unable to save. %s"
+msgstr "未能保存. %s"
+
+#: htdocs/luci-static/resources/traffic-stats.js:67 htdocs/luci-static/resources/traffic-stats.js:81 htdocs/luci-static/resources/view/traffic-stats/overview.js:144 htdocs/luci-static/resources/view/traffic-stats/overview.js:145 htdocs/luci-static/resources/view/traffic-stats/overview.js:187 htdocs/luci-static/resources/view/traffic-stats/overview.js:188 htdocs/luci-static/resources/view/traffic-stats/overview.js:199 htdocs/luci-static/resources/view/traffic-stats/overview.js:200
+msgid "Unavailable"
+msgstr "不可用"
+
+#: htdocs/luci-static/resources/traffic-stats.js:93
+msgid "Uncertain timing"
+msgstr "时间归属不确定"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:92 htdocs/luci-static/resources/view/traffic-stats/overview.js:195
+msgid "Unidentified devices"
+msgstr "未识别设备"
+
+#: htdocs/luci-static/resources/traffic-stats.js:138
+msgid "Unnamed"
+msgstr "未命名"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:59
+msgid "Updating"
+msgstr "更新中"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:204 htdocs/luci-static/resources/view/traffic-stats/history.js:277 htdocs/luci-static/resources/view/traffic-stats/history.js:86
+msgid "Upload"
+msgstr "上传"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:208
+msgid "Upload /s"
+msgstr "上传 /s"
+
+#: htdocs/luci-static/resources/view/traffic-stats/history.js:239
+msgid "Upload and download usage every 30 minutes on %s"
+msgstr "%s 全天每 30 分钟上传和下载用量"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:144
+msgid "Upload rate"
+msgstr "上传速率"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:155
+msgid "Use s/m/h; seconds by default. Range: 1s-24h, at least the sampling interval. Unsaved usage stays in memory."
+msgstr "支持 s/m/h, 默认秒; 范围 1s-24h, 不小于采样间隔. 未保存用量暂存内存."
+
+#: htdocs/luci-static/resources/traffic-stats.js:226
+msgid "View device history"
+msgstr "查看此设备历史"
+
+#: htdocs/luci-static/resources/view/traffic-stats/settings.js:71
+msgid "WAN network devices"
+msgstr "WAN 网络设备"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:127
+msgid "Waiting for samples"
+msgstr "等待采样"
+
+#: htdocs/luci-static/resources/view/traffic-stats/overview.js:173
+msgid "Waiting for the first sample"
+msgstr "等待第一份采样"

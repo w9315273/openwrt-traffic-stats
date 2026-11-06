@@ -1,0 +1,38 @@
+{
+  "admin/network/traffic-stats": {
+    "title": "Traffic Statistics",
+    "order": 70,
+    "action": {
+      "type": "firstchild"
+    },
+    "depends": {
+      "acl": [
+        "luci-app-traffic-stats"
+      ]
+    }
+  },
+  "admin/network/traffic-stats/overview": {
+    "title": "Overview",
+    "order": 10,
+    "action": {
+      "type": "view",
+      "path": "traffic-stats/overview"
+    }
+  },
+  "admin/network/traffic-stats/history": {
+    "title": "History",
+    "order": 20,
+    "action": {
+      "type": "view",
+      "path": "traffic-stats/history"
+    }
+  },
+  "admin/network/traffic-stats/settings": {
+    "title": "Settings",
+    "order": 30,
+    "action": {
+      "type": "view",
+      "path": "traffic-stats/settings"
+    }
+  }
+}

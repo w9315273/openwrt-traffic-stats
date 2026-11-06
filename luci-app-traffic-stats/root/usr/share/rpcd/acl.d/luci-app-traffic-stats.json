@@ -1,0 +1,40 @@
+{
+  "luci-app-traffic-stats": {
+    "description": "Read traffic statistics and configure its collector",
+    "read": {
+      "ubus": {
+        "traffic-stats": [
+          "status",
+          "history",
+          "containers"
+        ],
+        "uci": [
+          "get",
+          "changes"
+        ]
+      },
+      "uci": [
+        "traffic-stats",
+        "traffic-stats-devices"
+      ]
+    },
+    "write": {
+      "ubus": {
+        "traffic-stats": [
+          "service"
+        ],
+        "uci": [
+          "add",
+          "set",
+          "delete",
+          "commit",
+          "revert"
+        ]
+      },
+      "uci": [
+        "traffic-stats",
+        "traffic-stats-devices"
+      ]
+    }
+  }
+}

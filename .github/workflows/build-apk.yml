@@ -1,0 +1,222 @@
+name: build-apk
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'dev-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TARGET: x86
+  SUBTARGET: '64'
+  PKG_DIR_NAME: luci-app-traffic-stats
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: 检查包版本
+        run: |
+          set -euo pipefail
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import os, re
+          versions = []
+          for filename in ('openwrt/traffic-stats/Makefile', 'luci-app-traffic-stats/Makefile'):
+              text = Path(filename).read_text()
+              version = re.search(r'^PKG_VERSION:=([0-9]+(?:\.[0-9]+)*)$', text, re.M)
+              release = re.search(r'^PKG_RELEASE:=([0-9]+)$', text, re.M)
+              if not version or not release:
+                  raise SystemExit(f'Invalid package version: {filename}')
+              versions.append((version[1], release[1]))
+          if versions[0] != versions[1]:
+              raise SystemExit('Frontend and backend versions must match')
+          version, release = versions[0]
+          if os.environ['GITHUB_REF'].startswith('refs/tags/v') and os.environ['GITHUB_REF_NAME'] != 'v' + version:
+              raise SystemExit(f'Tag must match package version: v{version}')
+          if not os.environ['GITHUB_REF'].startswith('refs/tags/v'):
+              run_number = os.environ['GITHUB_RUN_NUMBER']
+              if not run_number.isdigit():
+                  raise SystemExit('Invalid workflow run number')
+              version += '_pre' + run_number
+          with open(os.environ['GITHUB_ENV'], 'a') as environment:
+              environment.write(f'PACKAGE_VERSION={version}\n')
+          print(f'Package version: {version}-r{release}')
+          PYTHON
+
+      - name: 安装构建依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang flex bison g++ gawk \
+            gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev \
+            python3 python3-setuptools rsync swig unzip zlib1g-dev file curl zstd jq
+
+      - name: 确定 OpenWrt 稳定版 SDK
+        id: sdk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RELEASE=$(
+            curl --fail --silent --show-error --location --retry 3 \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              'https://api.github.com/repos/openwrt/openwrt/releases?per_page=100' \
+              | jq -r '.[] | select(.draft == false and .prerelease == false) | .tag_name
+                  | select(test("^v25\\.12\\.[0-9]+$")) | ltrimstr("v")' \
+              | sort -V | tail -n 1
+          )
+          [[ -n "$RELEASE" ]] || { echo '::error::No stable OpenWrt 25.12 release found'; exit 1; }
+          BASE="https://downloads.openwrt.org/releases/${RELEASE}/targets/${TARGET}/${SUBTARGET}"
+          SDK_CACHE="${RUNNER_TEMP}/traffic-stats-sdk-download"
+          mkdir -p "$SDK_CACHE"
+          curl -fSL --retry 3 "$BASE/sha256sums" -o "$RUNNER_TEMP/traffic-stats-sdk-sha256sums"
+          SDK_TARBALL=$(awk '{ name=$2; sub(/^\*/, "", name); if (name ~ /^openwrt-sdk-.*\.tar\.zst$/) print name }' "$RUNNER_TEMP/traffic-stats-sdk-sha256sums")
+          [[ -n "$SDK_TARBALL" && "$SDK_TARBALL" != *$'\n'* && "$SDK_TARBALL" != */* ]] || {
+            echo '::error::Expected exactly one SDK archive'; exit 1;
+          }
+          SDK_SHA=$(awk -v name="$SDK_TARBALL" '{ file=$2; sub(/^\*/, "", file); if (file == name) print $1 }' "$RUNNER_TEMP/traffic-stats-sdk-sha256sums")
+          [[ "$SDK_SHA" =~ ^[0-9a-f]{64}$ ]]
+          echo "sha256=$SDK_SHA" >> "$GITHUB_OUTPUT"
+          echo "SDK_URL=$BASE/$SDK_TARBALL" >> "$GITHUB_ENV"
+          echo "SDK_TARBALL=$SDK_TARBALL" >> "$GITHUB_ENV"
+          echo "SDK_SHA=$SDK_SHA" >> "$GITHUB_ENV"
+          echo "OpenWrt SDK: ${RELEASE}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 缓存 SDK 压缩包
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/traffic-stats-sdk-download
+          key: traffic-stats-sdk-v1-${{ runner.os }}-${{ env.TARGET }}-${{ env.SUBTARGET }}-${{ steps.sdk.outputs.sha256 }}
+
+      - name: 校验并解压 SDK
+        run: |
+          set -euo pipefail
+          SDK_CACHE="${RUNNER_TEMP}/traffic-stats-sdk-download"
+          SDK_ROOT="${RUNNER_TEMP}/traffic-stats-sdk"
+          mkdir -p "$SDK_CACHE" "$SDK_ROOT"
+          cd "$SDK_CACHE"
+          # Verify cached archives too; download again if missing or corrupt.
+          if ! printf '%s  %s\n' "$SDK_SHA" "$SDK_TARBALL" | sha256sum -c -; then
+            curl -fSL --retry 3 "$SDK_URL" -o "$SDK_TARBALL"
+          fi
+          printf '%s  %s\n' "$SDK_SHA" "$SDK_TARBALL" | sha256sum -c -
+          tar --zstd -xf "$SDK_TARBALL" -C "$SDK_ROOT"
+          SDK_DIR=$(find "$SDK_ROOT" -mindepth 1 -maxdepth 1 -type d -name 'openwrt-sdk-*' -print)
+          [[ -n "$SDK_DIR" && "$SDK_DIR" != *$'\n'* ]]
+          echo "SDK_DIR=$SDK_DIR" >> "$GITHUB_ENV"
+
+      - name: 缓存依赖源码下载
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.SDK_DIR }}/dl
+          key: traffic-stats-dl-v1-${{ runner.os }}-${{ steps.sdk.outputs.sha256 }}-${{ hashFiles('openwrt/traffic-stats/Makefile', 'luci-app-traffic-stats/Makefile', '.github/workflows/build-apk.yml') }}
+          restore-keys: |
+            traffic-stats-dl-v1-${{ runner.os }}-${{ steps.sdk.outputs.sha256 }}-
+
+      - name: 构建后端、前端和翻译包
+        run: |
+          set -euo pipefail
+          cd "$SDK_DIR"
+          SOURCE_DIR="$GITHUB_WORKSPACE/.local/package-source"
+          mkdir -p "$SOURCE_DIR/openwrt" "package/$PKG_DIR_NAME"
+          cp "$GITHUB_WORKSPACE/Makefile" "$SOURCE_DIR/"
+          cp -R "$GITHUB_WORKSPACE/src" "$SOURCE_DIR/"
+          cp -R "$GITHUB_WORKSPACE/openwrt/traffic-stats" "$SOURCE_DIR/openwrt/"
+          ln -s "$SOURCE_DIR/openwrt/traffic-stats" package/traffic-stats
+          cp "$GITHUB_WORKSPACE/luci-app-traffic-stats/Makefile" "package/$PKG_DIR_NAME/"
+          cp -R "$GITHUB_WORKSPACE/luci-app-traffic-stats/htdocs" \
+            "$GITHUB_WORKSPACE/luci-app-traffic-stats/root" \
+            "$GITHUB_WORKSPACE/luci-app-traffic-stats/po" "package/$PKG_DIR_NAME/"
+          sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$PACKAGE_VERSION/" \
+            "$SOURCE_DIR/openwrt/traffic-stats/Makefile" "package/$PKG_DIR_NAME/Makefile"
+          ./scripts/feeds update -a
+          ./scripts/feeds install luci-base python3
+
+          touch .config
+          sed -i -E '/^(# )?CONFIG_(ALL|ALL_KMODS|ALL_NONSHARED|LUCI_LANG_[A-Za-z0-9_]+|PACKAGE_traffic-stats|PACKAGE_luci-app-traffic-stats|PACKAGE_luci-i18n-traffic-stats-[A-Za-z0-9_-]+)(=| is not set)/d' .config
+          cat >> .config <<'CONFIG'
+          CONFIG_ALL=n
+          CONFIG_ALL_KMODS=n
+          CONFIG_ALL_NONSHARED=n
+          CONFIG_PACKAGE_luci-app-traffic-stats=m
+          CONFIG
+          # Follow the SDK's language aliases (for example zh_Hans -> zh-cn).
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import os, re
+          luci = Path('feeds/luci/luci.mk').read_text()
+          supported = set(re.findall(r'^LUCI_LANG\.([\w]+)\s*[:?+]?=', luci, re.M))
+          aliases = dict(re.findall(r'^LUCI_LC_ALIAS\.([\w]+)\s*:?=\s*([\w-]+)', luci, re.M))
+          packages = ['traffic-stats', 'luci-app-traffic-stats']
+          with Path('.config').open('a') as config:
+              for directory in sorted(Path('package/luci-app-traffic-stats/po').iterdir()):
+                  if not directory.is_dir() or directory.name == 'templates':
+                      continue
+                  lang = directory.name
+                  if lang not in supported:
+                      raise SystemExit(f'Unsupported LuCI language directory: {lang}')
+                  if not list(directory.glob('*.po')):
+                      raise SystemExit(f'No translation sources: {lang}')
+                  package = 'luci-i18n-traffic-stats-' + aliases.get(lang, lang)
+                  packages.append(package)
+                  config.write(f'CONFIG_LUCI_LANG_{lang}=y\nCONFIG_PACKAGE_{package}=m\n')
+          Path(os.environ['RUNNER_TEMP'], 'traffic-stats-packages').write_text('\n'.join(packages) + '\n')
+          PYTHON
+          # Select only the frontend; its dependency must select the backend.
+          make defconfig
+          while IFS= read -r package; do
+            grep -Eq "^CONFIG_PACKAGE_${package}=(y|m)$" .config || {
+              echo "::error::${package} was not selected"
+              grep -n -F "$package" .config tmp/.packageinfo || true
+              sed -n "/^[[:space:]]*config PACKAGE_${package}\$/,/^[[:space:]]*config /p" tmp/.config-package.in
+              exit 1
+            }
+          done < "$RUNNER_TEMP/traffic-stats-packages"
+          make package/traffic-stats/compile -j"$(nproc)" V=sc
+          make "package/${PKG_DIR_NAME}/compile" -j"$(nproc)" V=sc
+
+      - name: 整理安装包
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/.local/dist"
+          while IFS= read -r package; do
+            mapfile -t files < <(find "$SDK_DIR/bin/packages" -type f -name "${package}-*.apk")
+            if (( ${#files[@]} != 1 )); then
+              echo "::error::Expected exactly one ${package} APK"; exit 1
+            fi
+            cp "${files[@]}" "$GITHUB_WORKSPACE/.local/dist/"
+          done < "$RUNNER_TEMP/traffic-stats-packages"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v7
+        with:
+          name: traffic-stats-apk
+          path: .local/dist/*.apk
+          if-no-files-found: error
+          include-hidden-files: true
+
+      - name: 发布到 Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          prerelease: ${{ startsWith(github.ref_name, 'dev-') || contains(github.ref_name, '-') }}
+          make_latest: ${{ contains(github.ref_name, '-') && 'false' || 'true' }}
+          fail_on_unmatched_files: true
+          files: .local/dist/*.apk
