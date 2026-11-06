@@ -92,10 +92,6 @@ msgstr ""
 msgid "Containers using unsupported network modes will be removed on save."
 msgstr ""
 
-#: htdocs/luci-static/resources/view/traffic-stats/settings.js:100
-msgid "Could not load containers. Check Docker and refresh. The current configuration is preserved and cannot be edited yet."
-msgstr ""
-
 #: htdocs/luci-static/resources/view/traffic-stats/overview.js:143
 msgid "Current rates"
 msgstr ""
@@ -314,10 +310,6 @@ msgstr ""
 
 #: htdocs/luci-static/resources/traffic-stats.js:44
 msgid "No collection status yet. Enable and start the service first."
-msgstr ""
-
-#: htdocs/luci-static/resources/view/traffic-stats/settings.js:112
-msgid "No containers available"
 msgstr ""
 
 #: htdocs/luci-static/resources/traffic-stats.js:220
