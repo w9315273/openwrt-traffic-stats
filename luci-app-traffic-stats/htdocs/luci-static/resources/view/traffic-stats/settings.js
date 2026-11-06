@@ -104,7 +104,12 @@ return view.extend({
 			return !containers.some(function(container) { return (container.addresses || []).indexOf(address) !== -1; });
 		}))
 			description += ' ' + _("Some old IP addresses have no matching container. Select again; old IP settings will be removed on save.");
-		var proxies = advanced.option(form.MultiValue, 'proxy_containers', _("Proxy containers"), description);
+		var ContainerSelect = form.MultiValue.extend({
+			transformChoices: function() {
+				return this.super('transformChoices', arguments) || {};
+			}
+		});
+		var proxies = advanced.option(ContainerSelect, 'proxy_containers', _("Proxy containers"), description);
 		proxies.create = false;
 		proxies.rmempty = true;
 		proxies.forcewrite = true;
