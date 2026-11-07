@@ -190,8 +190,8 @@ return view.extend({
 								click: function() { return stats.editDeviceName(device, function() { return Promise.resolve(inFlight).then(refresh); }); } }, [E('span', { 'class': 'ts-device-name-text' + (!device.custom_name && !device.hostname ? ' ts-monospace' : '') }, [stats.displayName(device)]), E('span', { 'class': 'ts-device-edit', 'aria-hidden': 'true' })])
 						].filter(Boolean))]),
 						E('td', { 'class': 'ts-mac' }, [device.mac || device.id]),
-						E('td', { 'class': 'ts-addresses' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') === -1; }).join(' / ') || placeholder()]),
-						E('td', { 'class': 'ts-addresses' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') !== -1; }).join(' / ') || placeholder()]),
+						E('td', { 'class': 'ts-addresses' }, [E('div', { 'class': 'ts-cell-scroll', tabindex: '0' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') === -1; }).join(' / ') || placeholder()])]),
+						E('td', { 'class': 'ts-addresses' }, [E('div', { 'class': 'ts-cell-scroll', tabindex: '0' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') !== -1; }).join(' / ') || placeholder()])]),
 						E('td', { 'class': 'ts-numeric' }, rateValue(live && device.up ? upload.bytes_per_second : null)),
 						E('td', { 'class': 'ts-numeric' }, rateValue(live && device.down ? download.bytes_per_second : null)),
 						E('td', { 'class': 'ts-numeric' }, monthBytes('d_' + device.id + '_up')),

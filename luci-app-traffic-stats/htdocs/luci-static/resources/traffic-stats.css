@@ -204,7 +204,6 @@
 	.ts-overview .ts-table th button.ts-sort { display: inline-flex; align-items: center; max-width: 100%; white-space: normal; }
 	.ts-overview .ts-sort-label { min-width: 0; }
 	.ts-overview .ts-sort > [aria-hidden] { flex-shrink: 0; white-space: nowrap; }
-	.ts-overview .ts-table .ts-addresses { overflow: hidden; text-overflow: ellipsis; }
 
 }
 
@@ -293,7 +292,8 @@
 .ts-overview .ts-device-label { display: flex; align-items: center; }
 .ts-overview .ts-device-label .ts-local-badge { flex-shrink: 0; }
 .ts-overview .ts-device-label .ts-device-name { display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 100%; min-height: 0; height: auto; line-height: 1.5; white-space: nowrap; }
-.ts-overview .ts-device-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ts-overview .ts-device-name-text { min-width: 0; }
+.ts-overview :is(.ts-device-name-text, .ts-cell-scroll) { overflow-x: auto; white-space: nowrap; scrollbar-width: thin; max-width: 100%; }
 .ts-overview .ts-device-edit { display: inline-block; flex: 0 0 12px; width: 12px; height: 12px; background: currentColor; opacity: .22; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
 .ts-overview .ts-device-name:is(:hover, :focus-visible) .ts-device-edit { opacity: .5; }
 
@@ -325,7 +325,6 @@
 	.ts-overview .ts-table th:nth-child(4) { width: 200px; }
 	.ts-overview .ts-table th.ts-numeric { width: 104px; }
 	.ts-overview .ts-table th, .ts-overview .ts-table td { padding: 6px 10px; }
-	.ts-overview .ts-table .ts-addresses { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.ts-overview .ts-table th:first-child, .ts-overview .ts-table td:first-child {
 		position: sticky; left: 0; z-index: 1; background: var(--ts-card); box-shadow: 1px 0 var(--ts-border);
 	}
