@@ -36,10 +36,14 @@ return view.extend({
 		stats.loadStyle();
 		var inFlight = null, latest = initial;
 		var sortKey = 'total', sortDescending = true;
+		var selectedLan = '', lanKey = null;
+		var lanFilters = E('div', { 'class': 'ts-lan-filters', hidden: true, scroll: updateLanFade }, [
+			E('div', { 'class': 'ts-refresh-options', role: 'group', 'aria-label': _('LAN devices') })
+		]);
 		var notices = E('div', { 'aria-live': 'polite' });
 		var metrics = E('div', { 'class': 'ts-metrics' });
 		var devices = E('div', { 'class': 'ts-table-scroll' });
-		var intervals = [ 1, 3, 5, 10 ], refreshInterval = 5;
+		var intervals = [ 1, 3, 5, 10 ], refreshInterval = 3;
 		try {
 			var savedInterval = Number(localStorage.getItem('traffic-stats.refresh-interval'));
 			if (intervals.indexOf(savedInterval) !== -1)
@@ -67,7 +71,7 @@ return view.extend({
 			E('div', { 'class': 'ts-overview-cards' }, [ metrics ]), notices,
 			E('section', { 'class': 'ts-section' }, [
 				E('div', { 'class': 'ts-toolbar' }, [
-					E('h3', {}, _('Devices')),
+					E('h3', {}, _('Devices')), lanFilters,
 					E('div', { 'class': 'ts-list-actions' }, [
 						E('div', { 'class': 'ts-refresh', role: 'group', 'aria-label': _('Refresh interval') }, [
 							E('span', { 'class': 'ts-muted' }, _('Refresh')),
@@ -77,6 +81,17 @@ return view.extend({
 				]), devices
 			])
 		]);
+
+		function updateLanFade() {
+			lanFilters.classList.toggle('ts-fade-left', lanFilters.scrollLeft > 1);
+			lanFilters.classList.toggle('ts-fade-right', lanFilters.scrollWidth - lanFilters.clientWidth - lanFilters.scrollLeft > 1);
+		}
+		var lanObserver = new ResizeObserver(function() {
+			if (!page.isConnected) { lanObserver.disconnect(); return; }
+			updateLanFade();
+		});
+		lanObserver.observe(lanFilters);
+		lanObserver.observe(lanFilters.firstChild);
 
 		function sortHeader(label, key) {
 			var active = sortKey === key;
@@ -97,6 +112,25 @@ return view.extend({
 			var available = s.available !== false && s.table_exists === true && s.table_owned === true;
 			var live = available && s.running === true && !s.stale && s.sampling_ok === true;
 			var config = s.configuration || {}, storage = s.storage || {}, interfaces = s.interfaces || {};
+			var lans = Array.from(new Set(config.lan_devices || []));
+			if (lans.length < 2 || lans.indexOf(selectedLan) === -1)
+				selectedLan = '';
+			lanFilters.hidden = lans.length < 2;
+			var nextLanKey = JSON.stringify(lans);
+			if (nextLanKey !== lanKey) {
+				lanKey = nextLanKey;
+				stats.replace(lanFilters.firstChild, [''].concat(lans).map(function(lan) {
+					return E('button', { type: 'button', 'class': 'cbi-button ts-refresh-option',
+						'data-lan': lan, click: function() {
+							selectedLan = lan;
+							update(latest);
+						} }, lan || _('All'));
+				}));
+			}
+			lanFilters.querySelectorAll('button').forEach(function(button) {
+				button.setAttribute('aria-pressed', String(button.getAttribute('data-lan') === selectedLan));
+			});
+			requestAnimationFrame(updateLanFade);
 			var messages = [];
 			if (s.load_error)
 				messages.push(stats.notice(stats.errorMessage(s.load_error), 'error'));
@@ -157,7 +191,9 @@ return view.extend({
 					metric(_('Monthly download'), monthBytes('total_down'), 'down')
 				])
 			]);
-			var list = stats.deviceList(s);
+			var list = stats.deviceList(s).filter(function(device) {
+				return !selectedLan || !device.local && (device.interfaces || []).indexOf(selectedLan) !== -1;
+			});
 			function sortValue(device) {
 				if (sortKey === 'address')
 					return (device.addresses || []).filter(function(address) { return address.indexOf(':') === -1; })[0] || null;
@@ -199,7 +235,7 @@ return view.extend({
 						E('td', { 'class': 'ts-numeric' }, totalBytes('d_' + device.id))
 					]);
 				});
-				rows.push(E('tr', { 'class': 'ts-unknown' }, [
+				if (!selectedLan) rows.push(E('tr', { 'class': 'ts-unknown' }, [
 					E('td', {}, [ E('strong', {}, _('Unidentified devices')) ]),
 					E('td', {}, placeholder()),
 					E('td', {}, placeholder()),
@@ -219,7 +255,7 @@ return view.extend({
 					E('tbody', {}, rows)
 				]);
 				stats.replace(devices, list.length ? table : [
-					stats.empty(_('No downstream devices found'), _('Check the LAN connection and device addresses. No usage can currently be attributed to a device.')),
+					stats.empty(selectedLan ? _('No devices on this network') : _('No downstream devices found'), selectedLan ? '' : _('Check the LAN connection and device addresses. No usage can currently be attributed to a device.')),
 					table
 				]);
 			}

@@ -408,3 +408,17 @@
 	.ts-name-actions > div { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 	.ts-name-actions .cbi-button { flex: 1 1 auto; min-height: 44px; max-width: 100%; margin: 0; white-space: normal; }
 }
+
+.ts-overview .ts-section > .ts-toolbar { flex-wrap: nowrap; }
+.ts-overview .ts-toolbar > h3, .ts-overview .ts-list-actions { flex-shrink: 0; }
+.ts-overview .ts-lan-filters { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.ts-overview .ts-lan-filters::-webkit-scrollbar { display: none; }
+.ts-overview .ts-lan-filters.ts-fade-left { mask-image: linear-gradient(to right, transparent, #000 20px); }
+.ts-overview .ts-lan-filters.ts-fade-right { mask-image: linear-gradient(to left, transparent, #000 20px); }
+.ts-overview .ts-lan-filters.ts-fade-left.ts-fade-right { mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent); }
+.ts-overview .ts-lan-filters .ts-refresh-options { width: max-content; }
+.ts-overview .ts-lan-filters .ts-refresh-option { white-space: nowrap; flex-shrink: 0; }
+
+@media (max-width: 600px) {
+	.ts-overview .ts-refresh > .ts-muted { display: none; }
+}

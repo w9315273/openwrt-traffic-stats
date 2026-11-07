@@ -591,3 +591,12 @@ msgstr ""
 
 msgid "Device names could not be read. Check the storage directory and JSON file."
 msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "LAN devices"
+msgstr ""
+
+msgid "No devices on this network"
+msgstr ""

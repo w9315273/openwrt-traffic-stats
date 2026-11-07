@@ -79,10 +79,8 @@ def _signature(entries):
                 definition.pop('bytes', None)
                 definition.pop('packets', None)
             elif kind == 'map':
-                # Kernel hash iteration order is not part of a map's meaning.
                 definition['elem'] = sorted(definition.get('elem', []), key=canonical)
             if kind == 'rule':
-                # Preserve rule order within each chain, independent of object listing order.
                 rules.setdefault(item['chain'], []).append(definition)
             else:
                 objects.append({kind: definition})
@@ -228,7 +226,6 @@ def plan(inventory, state, lan, wan, generation_if_new, proxy_ips=(), published=
     elif published or local_ids:
         lines.extend(f"add chain inet {TABLE} {name} {{ type filter hook {name} priority 10; policy accept; }}"
                      for name in LOCAL_CHAINS)
-    # Replacing only the maps keeps live counters and historical checkpoints intact.
     if state.exists and not state.interface_maps:
         lines.extend(f"delete map inet {TABLE} {name}" for name in MAPS)
     if not state.exists or not state.interface_maps:
@@ -249,7 +246,6 @@ def plan(inventory, state, lan, wan, generation_if_new, proxy_ips=(), published=
         interface = binding.get('interface') or lans[0]
         for direction in ("up", "down"):
             lines.append(f'add element inet {TABLE} {direction}{version} {{ "{interface}" . {address} : "d_{identity}_{direction}" }}')
-    # Count the client-facing leg only. goto ends this packet's accounting path.
     for version, family in ((4, "ip"), (6, "ip6")):
         selected = [ip for ip in proxy_ips if (":" in ip) == (version == 6)]
         if not selected:
@@ -278,7 +274,6 @@ def plan(inventory, state, lan, wan, generation_if_new, proxy_ips=(), published=
                          f'counter name total_{direction} goto {"upload" if direction == "up" else "download"}')
     if local_ids:
         identity = local_ids[0]
-        # Local sockets use WAN addresses, so attribution must not use LAN IP maps.
         lines.extend([
             f'add rule inet {TABLE} input iifname {wan_match} counter name total_down counter name d_{identity}_down',
             f'add rule inet {TABLE} output oifname {wan_match} counter name total_up counter name d_{identity}_up',
@@ -303,12 +298,14 @@ def _counter_json(counter):
 
 def _device_json(state, inventory, identity):
     device = inventory.devices.get(identity) if inventory is not None else None
-    addresses = [binding["address"] for binding in inventory.bindings.values()
-                 if not binding.get("conflict") and binding.get("device_id") == identity] if inventory is not None else []
+    bindings = [binding for binding in inventory.bindings.values()
+                if not binding.get("conflict") and binding.get("device_id") == identity] if inventory is not None else []
+    addresses = [binding["address"] for binding in bindings]
     return {"id": identity, "mac": ":".join(identity[i:i + 2] for i in range(0, 12, 2)),
             "hostname": device["hostname"] if device else "",
             **({'local': True} if device and device.get('local') else {}),
             "discovered": device is not None if inventory is not None else None,
+            "interfaces": sorted({binding["interface"] for binding in bindings if binding.get("interface")}),
             "addresses": list(dict.fromkeys(addresses)), "up": _counter_json(state.counters.get(f"d_{identity}_up")),
             "down": _counter_json(state.counters.get(f"d_{identity}_down"))}
 

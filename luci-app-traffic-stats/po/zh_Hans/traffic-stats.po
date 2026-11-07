@@ -593,3 +593,12 @@ msgstr "无法保存设备名称. 请检查存储目录和权限."
 
 msgid "Device names could not be read. Check the storage directory and JSON file."
 msgstr "无法读取设备名称. 请检查存储目录和 JSON 文件."
+
+msgid "All"
+msgstr "全部"
+
+msgid "LAN devices"
+msgstr "LAN 网络设备"
+
+msgid "No devices on this network"
+msgstr "此网络下暂无设备"
