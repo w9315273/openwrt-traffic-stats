@@ -8,6 +8,24 @@ function svg(tag, attrs, text) {
 	if (text != null) node.textContent = text;
 	return node;
 }
+function smoothPath(points) {
+	var slopes = points.slice(1).map(function(point, index) {
+		return (point[1] - points[index][1]) / (point[0] - points[index][0]);
+	});
+	var tangents = points.map(function(point, index) {
+		if (!index) return slopes[0] || 0;
+		if (index === points.length - 1) return slopes[index - 1] || 0;
+		var before = slopes[index - 1], after = slopes[index];
+		return before * after <= 0 ? 0 : Math.sign(before) * Math.min(Math.abs(before + after) / 2, 2 * Math.abs(before), 2 * Math.abs(after));
+	});
+	return points.map(function(point, index) {
+		if (!index) return 'M' + point.join(' ');
+		var previous = points[index - 1], step = (point[0] - previous[0]) / 3;
+		return 'C' + [previous[0] + step, previous[1] + step * tangents[index - 1],
+			point[0] - step, point[1] - step * tangents[index], point[0], point[1]].join(' ');
+	}).join(' ');
+}
+
 function button(label, click, cls) {
 	return E('button', { type: 'button', 'class': 'cbi-button ' + (cls || ''), click: click }, [label]);
 }
@@ -127,7 +145,6 @@ return view.extend({
 		function renderCalendar() {
 			calendarTitle.textContent = monthFormat.format(new Date(month + '-01T00:00:00Z'));
 			var first = new Date(month + '-01T00:00:00Z'), count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
-			// Use a Monday-starting UTC reference week so browser timezone cannot shift the labels.
 			var cells = [0, 1, 2, 3, 4, 5, 6].map(function(day) {
 				return E('span', { 'class': 'ts-weekday' }, [weekdayFormat.format(new Date(Date.UTC(2024, 0, day + 1)))]);
 			});
@@ -254,20 +271,36 @@ return view.extend({
 				var position = hour === 24 ? 1 : index >= 0 ? index / data.length : hour / 24;
 				canvas.appendChild(svg('text', { x: left + (width - left - right) * position, y: height - 12, 'text-anchor': hour === 24 ? 'end' : hour === 0 ? 'start' : 'middle', 'class': 'ts-chart-time' }, label));
 			}
-			var markers = svg('g');
+			var definitions = svg('defs'), areas = svg('g'), curves = svg('g'), markers = svg('g');
+			canvas.appendChild(definitions);
 			[0, 1].forEach(function(direction) {
-				var path = '', previous = null;
+				var color = direction ? '#3479ed' : '#18a999', gradientId = 'ts-history-fill-' + direction;
+				var gradient = svg('linearGradient', { id: gradientId, x1: '0%', y1: '0%', x2: '0%', y2: '100%' });
+				gradient.appendChild(svg('stop', { offset: '0%', 'stop-color': color, 'stop-opacity': '.27' }));
+				gradient.appendChild(svg('stop', { offset: '100%', 'stop-color': color, 'stop-opacity': '.015' }));
+				definitions.appendChild(gradient);
+				var segments = [], segment = [], previous = null;
 				data.forEach(function(point, index) {
 					if (!point.seen[direction]) { previous = null; return; }
-					var connect = previous && previous.end === point.start && previous.zone === point.zone;
-					path += (connect ? ' L' : ' M') + x(index) + ' ' + y(value(point, direction));
-					var partial = incomplete(point, direction), color = direction ? '#3479ed' : '#18a999';
+					if (!previous || previous.end !== point.start || previous.zone !== point.zone) {
+						segment = [];
+						segments.push(segment);
+					}
+					segment.push([x(index), y(value(point, direction))]);
+					var partial = incomplete(point, direction);
 					markers.appendChild(svg('circle', { 'class': 'ts-curve-point' + (partial ? ' is-incomplete' : ''), cx: x(index), cy: y(value(point, direction)), r: partial ? 3.5 : 2.5,
 						fill: partial ? 'var(--ts-card)' : color, stroke: color, 'stroke-width': partial ? 1.7 : 0 }));
 					previous = point;
 				});
-				canvas.appendChild(svg('path', { d: path, fill: 'none', stroke: direction ? '#3479ed' : '#18a999', 'stroke-width': 2.3 }));
+				segments.forEach(function(points) {
+					if (points.length < 2) return;
+					var path = smoothPath(points), first = points[0], last = points[points.length - 1];
+					areas.appendChild(svg('path', { 'class': 'ts-curve-area', d: path + ' L' + last[0] + ' ' + y(0) + ' L' + first[0] + ' ' + y(0) + ' Z', fill: 'url(#' + gradientId + ')' }));
+					curves.appendChild(svg('path', { 'class': 'ts-curve-line', d: path, fill: 'none', stroke: color, 'stroke-width': 2.3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+				});
 			});
+			canvas.appendChild(areas);
+			canvas.appendChild(curves);
 			canvas.appendChild(markers);
 			var guide = svg('line', { y1: top, y2: height - bottom, 'class': 'ts-curve-guide' });
 			var hover = svg('g', { 'class': 'ts-curve-hover', 'aria-hidden': 'true', style: 'display:none;pointer-events:none' });

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-Per-device traffic statistics for OpenWrt, using nftables. Supports IPv4, IPv6, multiple LAN/WAN network devices, multiple languages, and mobile browsers. The interface follows the LuCI language setting.
+Per-device traffic statistics powered by nftables, with IPv4 / IPv6, multiple LAN/WAN devices, multiple languages, and mobile support.
 
 ## Screenshots
 
@@ -10,52 +10,48 @@ Per-device traffic statistics for OpenWrt, using nftables. Supports IPv4, IPv6, 
 
 <img src="images/history.png" alt="History" width="1000">
 
-## Installation
+## Installation and Configuration
 
-The plugin consists of `traffic-stats` and `luci-app-traffic-stats`. The backend requires `python3-light`, `python3-sqlite3`, `nftables-json`, `uci`, `ubus` and `rpcd`; the frontend requires `luci-base`. No pip packages are needed.
+Install `luci-app-traffic-stats` to pull in the `traffic-stats` backend and dependencies automatically. No pip packages are needed. Update both packages when upgrading; collection restarts automatically.
 
-Install these packages and their dependencies using your firmware's package manager.
+Open **Services → Traffic Statistics → Settings**, select LAN/WAN devices, enable collection, then save and apply. Use actual network device names such as `br-lan` or `eth0`; the two lists must not overlap.
 
-## Configuration
-
-Collection is disabled by default. Open **Network → Traffic Statistics → Settings**, select the LAN/WAN devices, enable collection, then save and apply. Use actual Linux network device names such as `br-lan`, `eth0` or `pppoe-wan`. Each side accepts multiple devices, but the two lists must not overlap.
-
-Configuration is stored in `/etc/config/traffic-stats`:
+Configuration file: `/etc/config/traffic-stats`.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `enabled` | `0` | Enable collection |
+| `enabled` | `0` | Collection disabled by default |
 | `lan_devices` | `br-lan` | LAN device list |
-| `wan_devices` | Empty | WAN device list; configure before enabling collection |
+| `wan_devices` | Empty | WAN device list; configure before enabling |
 | `interval` | `5` | Sampling interval, 1–3600 seconds |
-| `commit_interval` | `60` | Database write interval in seconds; at least the sampling interval, up to 24 hours |
-| `retention` | `3` | Calendar months to retain, including the current month; 1–120, or `0` to keep history forever |
-| `proxy_containers` | Empty | Names of proxy containers on this router |
-| `storage_dir` | `/etc/traffic-stats` | Persistent storage directory |
+| `commit_interval` | `60` | Database write interval in seconds; between the sampling interval and 24 hours |
+| `retention` | `3` | Calendar months including the current month; 1–120, or `0` for unlimited retention |
+| `proxy_containers` | Empty | Local proxy container names |
+| `storage_dir` | `/etc/traffic-stats` | Storage directory |
 
-In LuCI, the database write interval accepts values such as `30s`, `5m` or `1h`, converted to seconds when saved. The overview's 1/3/5/10-second refresh options only control page refreshes.
+The database write interval accepts `30s`, `5m`, or `1h` in LuCI. Advanced settings offer Docker proxy container selection with automatic address and published-port tracking. Host networking is excluded; the option is hidden when no eligible containers exist.
 
-Advanced settings let you select multiple local Docker proxy containers. This requires a working Docker service and CLI. Container addresses and published host ports are tracked automatically. Host network mode and manual IP entry are not supported.
+## Usage
 
-## Usage and History
+- **Overview**: Current rates and monthly usage, sorted by total usage by default. With multiple LANs, filter devices without changing global totals or device history.
+- **Interaction**: Page refresh defaults to 3 seconds, independently of sampling. Refresh and LAN selections are remembered in the browser. Hover over the status icon for details or click to pin; long names and addresses scroll horizontally.
+- **History**: Browse days in the calendar, with one chart point every 30 minutes. Only saved data is shown; hollow points indicate incomplete records.
+- **Retention**: Stores 30-minute details and daily totals. Three months means the current month and the previous two; expired details and totals are deleted together.
+- **Names**: Click a device name in the overview to edit it. Unicode and spaces are supported. Matching priority is **MAC + IP > MAC > IP**, then rule order. Identical names do not merge devices.
 
-- **Overview**: Shows current rates and monthly usage, including both saved and pending usage. Devices are sorted by combined monthly upload and download usage in descending order by default. The router is included in the same sort order.
-- **History**: Browse days in the calendar and view a full-day chart from 00:00 to 24:00, with one point every 30 minutes. Only saved data is queried, so history may temporarily lag behind the overview.
-- **Retention**: Stores 30-minute detail records and daily totals; monthly totals are calculated from daily records. Retaining 3 months means the current month and the previous two. Expired detail records and daily totals are deleted together. The database is not split into monthly files.
+## Accounting Scope
 
-Accounting covers forwarding between the selected LAN/WAN devices, the router's own WAN traffic, and communication between LAN clients and selected proxy containers. Proxy usage is attributed at the client side, excluding duplicate forwarding counts on the container's other side. Other client communication with a selected container is also counted. This is not general monitoring of all Docker or VPN traffic.
+Counts forwarding between selected LAN/WAN devices, the router's WAN traffic, and all client communication with selected proxy containers. Proxy traffic is attributed to clients without counting the container's outgoing forwarding twice. This does not cover all Docker or VPN traffic.
 
-Recognized addresses with the same MAC belong to one device. Traffic that cannot be attributed is listed under “Unidentified devices”. Flow offloading, hardware acceleration or connections bypassing the selected paths may cause undercounting. Usage measures IP-layer bytes and may differ from your ISP's bill.
+Addresses sharing a MAC belong to one device; unattributed traffic appears under “Unidentified devices”. Flow offloading, hardware acceleration, or traffic bypassing selected paths may cause undercounting. IP-layer usage may differ from ISP billing.
 
-On first use, collection establishes a baseline; earlier traffic is not added retroactively. A normal stop saves pending data. Power loss or persistent write failures may result in lost unsaved usage. Clock changes, counter resets and collection interruptions are marked; hollow chart points indicate incomplete records.
+Collection does not backfill earlier traffic. A normal stop saves pending data; power loss or write failures may lose unsaved usage.
 
-## Storage and Device Names
+## Storage and Backups
 
-Within the storage directory, `traffic.db` stores usage and `devices` stores naming rules in UCI format. The default directory is created automatically. A custom directory must already exist, and external storage must be mounted first. When changing directories, existing data is copied if the destination file is missing and the original can be found. Existing destination files take precedence.
+The storage directory contains `traffic.db` for usage and `devices.json` for naming rules. It is created automatically, but its parent must exist and external storage must be mounted first. Changing directories copies available original data; existing destination files take precedence.
 
-OpenWrt backups include the default `/etc/traffic-stats/` directory. Stop the collector with `/etc/init.d/traffic-stats stop` before backing up or upgrading firmware to keep the database consistent; restart it after a manual backup. Back up custom storage directories separately.
-
-Click a device name in the overview to edit it. Chinese characters and spaces are supported. Rules can match MAC, IP or both, with priority **MAC + IP > MAC > IP**. Rules with equal priority follow configuration order. Names only affect display; devices with the same name are not merged.
+OpenWrt backups include the default directory; back up custom directories separately. Run `/etc/init.d/traffic-stats stop` before backups or firmware upgrades, and `/etc/init.d/traffic-stats start` after a manual backup.
 
 ## Troubleshooting
 
@@ -67,4 +63,4 @@ logread -e traffic-stats
 
 ## License
 
-Licensed under [GNU GPL v3.0 only](../LICENSE) (`GPL-3.0-only`).
+[GNU GPL v3.0 only](../LICENSE) (`GPL-3.0-only`).
