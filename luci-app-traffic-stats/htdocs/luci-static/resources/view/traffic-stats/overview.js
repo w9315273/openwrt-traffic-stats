@@ -42,10 +42,48 @@ return view.extend({
 			E('div', { 'class': 'ts-refresh-options', role: 'group', 'aria-label': _('LAN devices') })
 		]);
 		var notices = E('div', { 'aria-live': 'polite' });
-		var metrics = E('div', { 'class': 'ts-metrics' });
+		var statusPinned = false;
+		var statusTooltip = E('span', { id: 'ts-collection-status-tooltip', 'class': 'ts-status-tooltip', role: 'tooltip', hidden: true });
+		var statusIndicator = E('button', { type: 'button', 'class': 'ts-inline-state',
+			'aria-describedby': 'ts-collection-status-tooltip', 'aria-pressed': 'false',
+			click: function() {
+				statusPinned = !statusPinned;
+				showStatus(statusPinned);
+				statusIndicator.setAttribute('aria-pressed', String(statusPinned));
+				document[statusPinned ? 'addEventListener' : 'removeEventListener']('pointerdown', dismissStatus);
+			},
+			focus: function() { showStatus(true); },
+			blur: function() { if (!statusPinned) showStatus(false); }
+		});
+		var statusControl = E('span', { 'class': 'ts-status-control',
+			pointerenter: function(event) { if (event.pointerType !== 'touch') showStatus(true); },
+			pointerleave: function() { if (!statusPinned) showStatus(false); }
+		}, [statusIndicator, statusTooltip]);
+		function showStatus(visible) {
+			statusTooltip.hidden = !visible;
+			document[visible ? 'addEventListener' : 'removeEventListener']('keydown', dismissStatusKey);
+		}
+		function dismissStatus(event) {
+			if (event && statusControl.contains(event.target)) return;
+			statusPinned = false;
+			statusIndicator.setAttribute('aria-pressed', 'false');
+			showStatus(false);
+			document.removeEventListener('pointerdown', dismissStatus);
+		}
+		function dismissStatusKey(event) { if (event.key === 'Escape') dismissStatus(); }
+		var metrics = E('div', { 'class': 'ts-metrics' }, [
+			metricGroup(_('Current rates'), [
+				metric(_('Upload rate'), placeholder(), 'up'), metric(_('Download rate'), placeholder(), 'down')
+			], statusControl),
+			metricGroup(_('Monthly usage'), [
+				metric(_('Monthly upload'), placeholder(), 'up'), metric(_('Monthly download'), placeholder(), 'down')
+			])
+		]);
+		var metricValues = metrics.querySelectorAll('.ts-metric strong');
 		var devices = E('div', { 'class': 'ts-table-scroll' });
 		var intervals = [ 1, 3, 5, 10 ], refreshInterval = 3;
 		try {
+			selectedLan = localStorage.getItem('traffic-stats.lan-filter') || '';
 			var savedInterval = Number(localStorage.getItem('traffic-stats.refresh-interval'));
 			if (intervals.indexOf(savedInterval) !== -1)
 				refreshInterval = savedInterval;
@@ -65,8 +103,9 @@ return view.extend({
 					catch (error) { /* Polling does not depend on persisted preferences. */ }
 					poll.remove(refresh);
 					poll.add(refresh, seconds);
+					setRefreshAnimation();
 				}
-			}, seconds + 's');
+			}, [E('span', { 'class': 'ts-refresh-label' }, seconds + 's'), E('span', { 'class': 'ts-refresh-progress', 'aria-hidden': 'true' })]);
 		});
 		var page = E('div', { 'class': 'ts-page ts-overview' }, [
 			E('div', { 'class': 'ts-overview-cards' }, [ metrics ]), notices,
@@ -117,8 +156,11 @@ return view.extend({
 			var live = available && s.running === true && !s.stale && s.sampling_ok === true;
 			var config = s.configuration || {}, storage = s.storage || {}, interfaces = s.interfaces || {};
 			var lans = Array.from(new Set(config.lan_devices || []));
-			if (lans.length < 2 || lans.indexOf(selectedLan) === -1)
+			if (Array.isArray(config.lan_devices) && selectedLan && (lans.length < 2 || lans.indexOf(selectedLan) === -1)) {
 				selectedLan = '';
+				try { localStorage.removeItem('traffic-stats.lan-filter'); }
+				catch (error) { /* Filtering works without persisted preferences. */ }
+			}
 			lanFilters.hidden = lans.length < 2;
 			var nextLanKey = JSON.stringify(lans);
 			if (nextLanKey !== lanKey) {
@@ -127,6 +169,8 @@ return view.extend({
 					return E('button', { type: 'button', 'class': 'cbi-button ts-refresh-option',
 						'data-lan': lan, click: function() {
 							selectedLan = lan;
+							try { localStorage.setItem('traffic-stats.lan-filter', lan); }
+							catch (error) { /* Filtering works without persisted preferences. */ }
 							update(latest);
 						} }, lan || _('All'));
 				}));
@@ -185,16 +229,15 @@ return view.extend({
 				var value = monthTotal(prefix);
 				return value === null ? placeholder() : stats.bytes(value);
 			}
-			stats.replace(metrics, [
-				metricGroup(_('Current rates'), [
-					metric(_('Upload rate'), rateValue(live ? (rates.total_up || {}).bytes_per_second : null), 'up'),
-					metric(_('Download rate'), rateValue(live ? (rates.total_down || {}).bytes_per_second : null), 'down')
-				], E('span', { 'class': 'ts-inline-state ts-state-' + statusKind }, statusText)),
-				metricGroup(_('Monthly usage'), [
-					metric(_('Monthly upload'), monthBytes('total_up'), 'up'),
-					metric(_('Monthly download'), monthBytes('total_down'), 'down')
-				])
-			]);
+			var sampleInterval = Number(s.interval || config.interval);
+			statusIndicator.className = 'ts-inline-state ts-state-' + statusKind + (live && statusKind === 'good' ? ' ts-sampling' : '');
+			statusTooltip.className = 'ts-status-tooltip ts-state-' + statusKind;
+			if (statusTooltip.textContent !== statusText) statusTooltip.textContent = statusText;
+			statusIndicator.setAttribute('aria-label', statusText);
+			statusIndicator.style.setProperty('--ts-sample-interval', (Number.isFinite(sampleInterval) && sampleInterval > 0 ? sampleInterval : 5) + 's');
+			[rateValue(live ? (rates.total_up || {}).bytes_per_second : null),
+				rateValue(live ? (rates.total_down || {}).bytes_per_second : null), monthBytes('total_up'), monthBytes('total_down')
+			].forEach(function(value, index) { setValue(metricValues[index], value); });
 			var list = stats.deviceList(s).filter(function(device) {
 				return !selectedLan || !device.local && (device.interfaces || []).indexOf(selectedLan) !== -1;
 			});
@@ -316,7 +359,7 @@ return view.extend({
 					if (!emptyMessage || !emptyMessage.isEqualNode(message)) {
 						if (emptyMessage) emptyMessage.remove();
 						emptyMessage = message;
-						devices.insertBefore(emptyMessage, deviceTable);
+						devices.appendChild(emptyMessage);
 					}
 				}
 			}
@@ -330,17 +373,25 @@ return view.extend({
 
 		}
 
+		function setRefreshAnimation() {
+			page.style.setProperty('--ts-refresh-interval', refreshInterval + 's');
+		}
+
 		function refresh() {
 			if (inFlight)
 				return inFlight;
 			inFlight = stats.status().then(update).catch(function(error) {
 				update(Object.assign({}, latest, { load_error: error, stale: true, sampling_ok: false }));
-			}).finally(function() { inFlight = null; });
+			}).finally(function() {
+				inFlight = null;
+			});
 			return inFlight;
 		}
 
 		update(initial);
 		poll.add(refresh, refreshInterval);
+		setRefreshAnimation();
+		page.appendChild(stats.footer());
 		return page;
 	},
 	handleSaveApply: null,

@@ -4,6 +4,9 @@
 'require ui';
 'require validation';
 
+// Replaced from the frontend Makefile when packaging.
+var packageVersion = '@TRAFFIC_STATS_VERSION@';
+
 var callStatus = rpc.declare({
 	object: 'traffic-stats', method: 'status', expect: { '': {} }, reject: true
 });
@@ -228,6 +231,12 @@ function deviceList(status) {
 }
 
 return baseclass.extend({
+	footer: function() {
+		var version = packageVersion.charAt(0) === '@' ? 'dev' : 'v' + packageVersion;
+		return E('small', { 'class': 'ts-footer' }, [E('a', {
+			href: 'https://github.com/w9315273/openwrt-traffic-stats', target: '_blank', rel: 'noopener noreferrer'
+		}, [E('span', { 'class': 'ts-footer-github', 'aria-hidden': 'true' }), 'Traffic Stats ' + version])]);
+	},
 	status: function() { return callStatus().then(unwrap); },
 	containers: function() { return callContainers().then(unwrap); },
 	history: function(resolution, from, to, counter) {

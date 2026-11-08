@@ -321,6 +321,7 @@ return view.extend({
 		});
 		chartObserver.observe(chart);
 		refresh();
+		page.appendChild(stats.footer());
 		return page;
 	},
 	handleSaveApply: null,

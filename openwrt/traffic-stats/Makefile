@@ -4,7 +4,7 @@ TRAFFIC_STATS_SOURCE_DIR?=$(realpath $(TRAFFIC_STATS_PACKAGE_DIR)/../..)
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=traffic-stats
-PKG_VERSION:=1.0.2
+PKG_VERSION:=1.0.3
 PKG_RELEASE:=1
 PKG_LICENSE:=GPL-3.0-only
 PKG_FILE_DEPENDS:=$(TRAFFIC_STATS_SOURCE_DIR)/src $(TRAFFIC_STATS_SOURCE_DIR)/Makefile
@@ -31,7 +31,10 @@ endef
 
 define Package/traffic-stats/postinst
 #!/bin/sh
-[ -n "$${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	/etc/init.d/rpcd reload
+	/etc/init.d/traffic-stats restart
+fi
 endef
 
 define Build/Prepare

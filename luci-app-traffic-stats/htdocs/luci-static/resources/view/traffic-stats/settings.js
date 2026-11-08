@@ -184,6 +184,7 @@ return view.extend({
 		};
 		return map.render().then(function(node) {
 			node.classList.add('ts-settings');
+			node.appendChild(stats.footer());
 			return node;
 		});
 	}
