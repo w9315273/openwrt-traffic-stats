@@ -600,3 +600,12 @@ msgstr ""
 
 msgid "No devices on this network"
 msgstr ""
+
+msgid "Included in totals, but not yet matched to a device."
+msgstr ""
+
+msgid "Device addresses may still be undiscovered or their ownership unclear."
+msgstr ""
+
+msgid "Once identified, new traffic goes to the device; earlier usage stays here."
+msgstr ""

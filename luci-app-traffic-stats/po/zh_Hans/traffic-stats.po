@@ -602,3 +602,12 @@ msgstr "LAN 网络设备"
 
 msgid "No devices on this network"
 msgstr "此网络下暂无设备"
+
+msgid "Included in totals, but not yet matched to a device."
+msgstr "已计入总量, 暂时无法归属到具体设备."
+
+msgid "Device addresses may still be undiscovered or their ownership unclear."
+msgstr "通常是设备地址尚未发现, 或地址归属不明确."
+
+msgid "Once identified, new traffic goes to the device; earlier usage stays here."
+msgstr "识别后, 新流量归入设备; 此前用量仍保留在这里."

@@ -42,11 +42,13 @@ return view.extend({
 			E('div', { 'class': 'ts-refresh-options', role: 'group', 'aria-label': _('LAN devices') })
 		]);
 		var notices = E('div', { 'aria-live': 'polite' });
-		var statusPinned = false;
+		var statusPinned = false, statusTouch = false;
 		var statusTooltip = E('span', { id: 'ts-collection-status-tooltip', 'class': 'ts-status-tooltip', role: 'tooltip', hidden: true });
 		var statusIndicator = E('button', { type: 'button', 'class': 'ts-inline-state',
 			'aria-describedby': 'ts-collection-status-tooltip', 'aria-pressed': 'false',
-			click: function() {
+			pointerdown: function(event) { statusTouch = event.pointerType === 'touch' || event.pointerType === 'pen'; },
+			click: function(event) {
+				if (!statusTouch && event.detail !== 0) return;
 				statusPinned = !statusPinned;
 				showStatus(statusPinned);
 				statusIndicator.setAttribute('aria-pressed', String(statusPinned));
@@ -121,6 +123,57 @@ return view.extend({
 				]), devices
 			])
 		]);
+
+		var unknownRow = null, unknownTouch = false;
+		var unknownTooltip = E('div', { id: 'ts-unknown-tooltip', 'class': 'ts-unknown-tooltip', role: 'tooltip', hidden: true }, [
+			E('div', { 'class': 'ts-unknown-tooltip-heading' }, [
+				E('span', { 'class': 'ts-unknown-info', 'aria-hidden': 'true' }, 'i'),
+				E('strong', {}, _('Unattributed traffic'))
+			]),
+			E('p', {}, _('Included in totals, but not yet matched to a device.')),
+			E('p', { 'class': 'ts-unknown-reason' }, _('Device addresses may still be undiscovered or their ownership unclear.')),
+			E('div', { 'class': 'ts-unknown-note' }, _('Once identified, new traffic goes to the device; earlier usage stays here.'))
+		]);
+		page.appendChild(unknownTooltip);
+		function hideUnknown() {
+			unknownTooltip.hidden = true;
+			if (unknownRow) unknownRow.querySelector('button').setAttribute('aria-expanded', 'false');
+			unknownRow = null;
+			document.removeEventListener('pointerdown', dismissUnknown);
+			document.removeEventListener('keydown', unknownKey);
+			window.removeEventListener('scroll', hideUnknown, true);
+			window.removeEventListener('resize', hideUnknown);
+		}
+		function dismissUnknown(event) {
+			if (!unknownRow || !unknownRow.contains(event.target)) hideUnknown();
+		}
+		function unknownKey(event) { if (event.key === 'Escape') hideUnknown(); }
+		function showUnknown(row, pointer) {
+			unknownRow = row;
+			unknownTooltip.hidden = false;
+			row.querySelector('button').setAttribute('aria-expanded', 'true');
+			var rect = row.getBoundingClientRect(), card = row.closest('.ts-section').getBoundingClientRect();
+			var minLeft = Math.max(8, card.left + 12), maxRight = Math.min(window.innerWidth - 8, card.right - 12);
+			unknownTooltip.style.maxWidth = Math.max(0, maxRight - minLeft) + 'px';
+			var box = unknownTooltip.getBoundingClientRect();
+			var minTop = Math.max(8, card.top + 12), maxBottom = Math.min(window.innerHeight - 8, card.bottom - 12);
+			var anchor = pointer ? pointer.clientX : minLeft + box.width / 2;
+			var left = Math.max(minLeft, Math.min(anchor - box.width / 2, maxRight - box.width));
+			var below = rect.top - box.height - 12 < minTop && rect.bottom + box.height + 12 <= maxBottom;
+			var top = below ? rect.bottom + 12 : rect.top - box.height - 12;
+			unknownTooltip.classList.toggle('is-below', below);
+			unknownTooltip.style.setProperty('--ts-arrow-left', Math.max(16, Math.min(anchor - left, box.width - 16)) + 'px');
+			unknownTooltip.style.left = left + 'px';
+			unknownTooltip.style.top = Math.max(minTop, Math.min(top, maxBottom - box.height)) + 'px';
+			document.addEventListener('pointerdown', dismissUnknown);
+			document.addEventListener('keydown', unknownKey);
+			window.addEventListener('scroll', hideUnknown, true);
+			window.addEventListener('resize', hideUnknown);
+		}
+		function toggleUnknown(row) {
+			if (!unknownTooltip.hidden) hideUnknown();
+			else showUnknown(row);
+		}
 
 		function setScrollFade(element) {
 			element.classList.toggle('ts-fade-left', element.scrollLeft > 1);
@@ -291,7 +344,7 @@ return view.extend({
 				var visible = new Set(list.map(function(device) { return device.id; }));
 				if (!selectedLan) visible.add('unknown');
 				deviceRows.forEach(function(record, id) {
-					if (!visible.has(id)) { record.row.remove(); deviceRows.delete(id); }
+					if (!visible.has(id)) { if (id === 'unknown') hideUnknown(); record.row.remove(); deviceRows.delete(id); }
 				});
 				var rows = list.map(function(device) {
 					var record = deviceRows.get(device.id);
@@ -334,8 +387,19 @@ return view.extend({
 				if (!selectedLan) {
 					var unknown = deviceRows.get('unknown');
 					if (!unknown) {
-						unknown = { row: E('tr', { 'class': 'ts-unknown' }, [
-							E('td', {}, [E('strong', {}, _('Unattributed traffic'))]),
+						unknown = { row: E('tr', { 'class': 'ts-unknown',
+							pointerdown: function(event) { unknownTouch = event.pointerType === 'touch' || event.pointerType === 'pen'; },
+							pointerenter: function(event) { if (event.pointerType === 'mouse') showUnknown(event.currentTarget, event); },
+							pointermove: function(event) { if (event.pointerType === 'mouse') showUnknown(event.currentTarget, event); },
+							pointerleave: function(event) { if (event.pointerType === 'mouse') hideUnknown(); },
+							focusin: function(event) { if (!unknownTouch && event.target.matches(':focus-visible')) showUnknown(event.currentTarget); },
+							focusout: hideUnknown,
+							click: function(event) {
+								if (unknownTouch || event.detail === 0 || window.matchMedia('(pointer: coarse)').matches) toggleUnknown(event.currentTarget);
+							}
+						}, [
+							E('td', {}, [E('button', { type: 'button', 'class': 'ts-unknown-label',
+								'aria-describedby': 'ts-unknown-tooltip', 'aria-expanded': 'false' }, _('Unattributed traffic'))]),
 							E('td', {}, placeholder()), E('td', {}, placeholder()), E('td', {}, placeholder())
 						].concat([0, 1, 2, 3, 4].map(function() { return E('td', { 'class': 'ts-numeric' }); }))) };
 						deviceRows.set('unknown', unknown);

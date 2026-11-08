@@ -317,7 +317,10 @@
 .ts-overview .ts-mac { font-size: 11px; color: var(--ts-muted); white-space: nowrap; }
 .ts-overview .ts-device-label { display: flex; align-items: center; }
 .ts-overview .ts-device-label .ts-local-badge { flex-shrink: 0; }
-.ts-overview .ts-device-label .ts-device-name { display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 100%; min-height: 0; height: auto; line-height: 1.5; white-space: nowrap; }
+.ts-overview { --ts-device-control-height: 24px; }
+.ts-overview .ts-table :is(.ts-device-name, .ts-unknown-label) { display: inline-flex; align-items: center; min-height: var(--ts-device-control-height); height: auto; line-height: 20px; white-space: nowrap; }
+.ts-overview .ts-device-label .ts-device-name { gap: 5px; min-width: 0; max-width: 100%; }
+.ts-overview .ts-table tbody tr:last-child td { border-bottom: 1px solid transparent; }
 .ts-overview .ts-device-name-text { min-width: 0; }
 .ts-overview :is(.ts-device-name-text, .ts-cell-scroll) { overflow-x: auto; white-space: nowrap; scrollbar-width: none; max-width: 100%; }
 .ts-overview :is(.ts-device-name-text, .ts-cell-scroll)::-webkit-scrollbar { display: none; }
@@ -359,7 +362,7 @@
 	.ts-overview .ts-table th button.ts-sort { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; white-space: normal; }
 	.ts-overview .ts-sort-label { min-width: 0; }
 	.ts-overview .ts-sort > [aria-hidden] { flex-shrink: 0; white-space: nowrap; }
-	.ts-overview .ts-device-label .ts-device-name { min-height: 44px; }
+	.ts-overview { --ts-device-control-height: 44px; }
 }
 @media (max-width: 600px) {
 	.ts-page { padding: 10px; }
@@ -501,4 +504,35 @@
 @media (max-width: 600px) {
 	.ts-page { padding-bottom: 18px; }
 	.ts-page > .ts-footer { right: 10px; height: 18px; }
+}
+
+.ts-overview .ts-unknown { cursor: default; }
+.ts-overview .ts-unknown-label:focus-visible { outline: 2px solid var(--ts-accent); outline-offset: -2px; }
+.ts-overview .ts-unknown-tooltip {
+	position: fixed; z-index: 1000; width: 320px; max-width: calc(100vw - 16px); box-sizing: border-box;
+	padding: 12px 14px; border: 1px solid var(--ts-border); border-radius: 7px;
+	background: var(--ts-card); color: var(--ts-text); box-shadow: 0 4px 20px #0003;
+	font-size: 12px; line-height: 1.6; pointer-events: none;
+}
+.ts-overview .ts-unknown-tooltip[hidden] { display: none; }
+.ts-overview .ts-unknown-tooltip-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.ts-overview .ts-unknown-tooltip-heading strong { font-size: 13px; font-weight: 600; }
+.ts-overview .ts-unknown-info { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; height: 18px; border: 1px solid var(--ts-border); border-radius: 50%; color: var(--ts-muted); font-size: 12px; font-weight: 600; }
+.ts-overview .ts-unknown-tooltip p { margin: 0; }
+.ts-overview .ts-unknown-tooltip .ts-unknown-reason { margin-top: 5px; color: var(--ts-muted); }
+.ts-overview .ts-unknown-note { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--ts-border); font-size: 11px; color: var(--ts-muted); }
+
+.ts-overview .ts-table .ts-unknown td { color: var(--ts-muted); }
+
+.ts-overview .ts-unknown-tooltip::after {
+	content: ''; position: absolute; left: var(--ts-arrow-left, 50%); bottom: -6px;
+	width: 10px; height: 10px; background: var(--ts-card);
+	border-right: 1px solid var(--ts-border); border-bottom: 1px solid var(--ts-border);
+	transform: translateX(-50%) rotate(45deg);
+}
+.ts-overview .ts-unknown-tooltip.is-below::after { top: -6px; bottom: auto; transform: translateX(-50%) rotate(225deg); }
+
+.ts-overview .ts-table button.ts-unknown-label {
+	width: 100%; margin: 0; padding: 0; border: 0; background: none;
+	box-shadow: none; color: inherit; font-family: inherit; font-size: inherit; font-weight: 600; text-align: left; cursor: default;
 }
