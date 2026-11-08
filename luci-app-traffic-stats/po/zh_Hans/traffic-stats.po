@@ -539,8 +539,8 @@ msgid "Uncertain timing"
 msgstr "时间归属不确定"
 
 #: htdocs/luci-static/resources/view/traffic-stats/history.js:92 htdocs/luci-static/resources/view/traffic-stats/overview.js:195
-msgid "Unidentified devices"
-msgstr "未识别设备"
+msgid "Unattributed traffic"
+msgstr "未归属流量"
 
 #: htdocs/luci-static/resources/traffic-stats.js:138
 msgid "Unnamed"

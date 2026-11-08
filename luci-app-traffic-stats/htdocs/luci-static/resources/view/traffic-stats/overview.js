@@ -335,7 +335,7 @@ return view.extend({
 					var unknown = deviceRows.get('unknown');
 					if (!unknown) {
 						unknown = { row: E('tr', { 'class': 'ts-unknown' }, [
-							E('td', {}, [E('strong', {}, _('Unidentified devices'))]),
+							E('td', {}, [E('strong', {}, _('Unattributed traffic'))]),
 							E('td', {}, placeholder()), E('td', {}, placeholder()), E('td', {}, placeholder())
 						].concat([0, 1, 2, 3, 4].map(function() { return E('td', { 'class': 'ts-numeric' }); }))) };
 						deviceRows.set('unknown', unknown);

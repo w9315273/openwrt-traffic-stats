@@ -537,7 +537,7 @@ msgid "Uncertain timing"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/traffic-stats/history.js:92 htdocs/luci-static/resources/view/traffic-stats/overview.js:195
-msgid "Unidentified devices"
+msgid "Unattributed traffic"
 msgstr ""
 
 #: htdocs/luci-static/resources/traffic-stats.js:138

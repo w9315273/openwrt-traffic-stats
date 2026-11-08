@@ -108,7 +108,7 @@ return view.extend({
 			E('section', { 'class': 'ts-section ts-history-devices' }, [table])
 		]);
 		function deviceName(key) {
-			return key === 'total' ? _('All devices') : key === 'unknown' ? _('Unidentified devices') :
+			return key === 'total' ? _('All devices') : key === 'unknown' ? _('Unattributed traffic') :
 				byId[key] ? stats.displayName(byId[key]) : key.slice(2).match(/../g).join(':');
 		}
 		function isLocal(key) { return !!(byId[key] && byId[key].local); }
