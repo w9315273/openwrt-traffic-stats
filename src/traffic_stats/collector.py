@@ -150,14 +150,12 @@ def read_inventory(options, local_device=None):
                 inventory.load_neighbors(lan)
                 inventory.load_local(lan)
             except OSError as error:
-                # Unplugged or reconnecting interfaces must not stop other paths.
                 if error.errno not in (errno.ENODEV, errno.ENXIO):
                     raise
     return inventory, leases_available
 
 
 def configuration_key(inventory, listeners):
-    # Names and discovery priority do not change packet attribution.
     devices = tuple(sorted((identity, bool(device.get('local'))) for identity, device in inventory.devices.items()))
     bindings = tuple(sorted((binding.get('interface', ''), binding['family'], binding['address'], binding['device_id'])
                             for binding in inventory.bindings.values() if not binding.get('conflict')))
@@ -176,6 +174,7 @@ class Collector:
         self.inventory = None
         self.listeners = []
         self.proxy_ips = []
+        self.proxy_error = ""
         self.leases_available = True
         self.configuration_key = None
         self.rule_signature = None
@@ -220,7 +219,6 @@ class Collector:
                 try:
                     state = read_state(cancel=self.cancelled, table_only=True)
                 except OSError:
-                    # A missing table is recoverable; unrelated read failures remain errors.
                     state = read_state(cancel=self.cancelled)
                     refresh_discovery = True
             if state.exists and not state.owned:
@@ -234,7 +232,16 @@ class Collector:
                 step = "Read device discovery sources"
                 inventory, leases_available = read_inventory(options, self.local_device)
                 step = "Read proxy containers"
-                records = proxy.containers(cancel=self.cancelled)['containers'] if options.proxy_containers else []
+                proxy_error = ""
+                try:
+                    records = proxy.containers(cancel=self.cancelled)['containers'] if options.proxy_containers else []
+                except (OSError, ValueError) as error:
+                    records = []
+                    proxy_error = str(error)
+                if not self.stopping and proxy_error != self.proxy_error:
+                    print("Proxy discovery unavailable; continuing ordinary traffic collection: " + proxy_error
+                          if proxy_error else "Proxy discovery recovered.", file=sys.stderr)
+                self.proxy_error = proxy_error
                 selected = [item for item in records if item['name'] in options.proxy_containers]
                 proxy_ips = proxy.addresses([address for item in selected for address in item['addresses']])
                 endpoints = {(listener['address'], listener['protocol'], listener['port'])
@@ -247,7 +254,6 @@ class Collector:
                    configuration_key(inventory, listeners))
             reconcile = key != self.configuration_key or table_created or options.command != 'watch'
             if refresh_discovery and not reconcile:
-                # The global audit omits set elements; compare the complete local table.
                 step = "Read nftables state"
                 state = read_state(cancel=self.cancelled, table_only=True)
             if reconcile or state.signature != self.rule_signature:
@@ -281,8 +287,6 @@ class Collector:
                 except (ValueError, sqlite3.Error, OverflowError) as error:
                     self.storage_error = str(error)
                     raise
-            # Adopt staged checkpoints before any display-only query can fail.
-            # Retrying from the old baseline would count staged traffic twice.
             self.previous = measured["batch"]["checkpoints"]
             self.resumed = False
             self.previous_generation = updated.generation
