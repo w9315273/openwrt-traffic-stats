@@ -99,7 +99,8 @@
 .ts-page .ts-section { margin: 12px 0; padding: 16px; background: var(--ts-card); border: 1px solid var(--ts-border); border-radius: 12px; }
 .ts-page .ts-section > h3, .ts-page .ts-section > .ts-toolbar { margin-bottom: 8px; }
 .ts-page .ts-section > p { margin: 6px 0 12px; }
-.ts-page .ts-table-scroll { width: 100%; overflow-x: auto; scrollbar-width: thin; }
+.ts-page .ts-table-scroll { width: 100%; overflow-x: auto; scrollbar-width: none; }
+.ts-page .ts-table-scroll::-webkit-scrollbar { display: none; }
 .ts-page .ts-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; background: var(--ts-card); margin: 0; }
 .ts-page .ts-table th, .ts-page .ts-table td {
 	padding: 12px 10px; border: 0; border-bottom: 1px solid var(--ts-border);
@@ -293,7 +294,8 @@
 .ts-overview .ts-device-label .ts-local-badge { flex-shrink: 0; }
 .ts-overview .ts-device-label .ts-device-name { display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 100%; min-height: 0; height: auto; line-height: 1.5; white-space: nowrap; }
 .ts-overview .ts-device-name-text { min-width: 0; }
-.ts-overview :is(.ts-device-name-text, .ts-cell-scroll) { overflow-x: auto; white-space: nowrap; scrollbar-width: thin; max-width: 100%; }
+.ts-overview :is(.ts-device-name-text, .ts-cell-scroll) { overflow-x: auto; white-space: nowrap; scrollbar-width: none; max-width: 100%; }
+.ts-overview :is(.ts-device-name-text, .ts-cell-scroll)::-webkit-scrollbar { display: none; }
 .ts-overview .ts-device-edit { display: inline-block; flex: 0 0 12px; width: 12px; height: 12px; background: currentColor; opacity: .22; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m16 3 5 5-12 12-6 1 1-6Z M14 5l5 5' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
 .ts-overview .ts-device-name:is(:hover, :focus-visible) .ts-device-edit { opacity: .5; }
 
@@ -413,9 +415,17 @@
 .ts-overview .ts-toolbar > h3, .ts-overview .ts-list-actions { flex-shrink: 0; }
 .ts-overview .ts-lan-filters { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .ts-overview .ts-lan-filters::-webkit-scrollbar { display: none; }
-.ts-overview .ts-lan-filters.ts-fade-left { mask-image: linear-gradient(to right, transparent, #000 20px); }
-.ts-overview .ts-lan-filters.ts-fade-right { mask-image: linear-gradient(to left, transparent, #000 20px); }
-.ts-overview .ts-lan-filters.ts-fade-left.ts-fade-right { mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent); }
+@property --ts-edge-left { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --ts-edge-right { syntax: '<number>'; inherits: false; initial-value: 1; }
+.ts-overview :is(.ts-lan-filters, .ts-device-name-text, .ts-cell-scroll) {
+	mask-image: linear-gradient(to right, rgb(0 0 0 / var(--ts-edge-left)), #000 min(20px, 25%), #000 max(calc(100% - 20px), 75%), rgb(0 0 0 / var(--ts-edge-right)));
+	transition: --ts-edge-left 180ms ease, --ts-edge-right 180ms ease;
+}
+.ts-overview .ts-fade-left { --ts-edge-left: 0; }
+.ts-overview .ts-fade-right { --ts-edge-right: 0; }
+@media (prefers-reduced-motion: reduce) {
+	.ts-overview :is(.ts-lan-filters, .ts-device-name-text, .ts-cell-scroll) { transition: none; }
+}
 .ts-overview .ts-lan-filters .ts-refresh-options { width: max-content; }
 .ts-overview .ts-lan-filters .ts-refresh-option { white-space: nowrap; flex-shrink: 0; }
 

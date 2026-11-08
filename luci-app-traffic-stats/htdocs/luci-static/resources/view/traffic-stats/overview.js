@@ -36,8 +36,9 @@ return view.extend({
 		stats.loadStyle();
 		var inFlight = null, latest = initial;
 		var sortKey = 'total', sortDescending = true;
+		var deviceRows = new Map(), deviceTable = null, emptyMessage = null;
 		var selectedLan = '', lanKey = null;
-		var lanFilters = E('div', { 'class': 'ts-lan-filters', hidden: true, scroll: updateLanFade }, [
+		var lanFilters = E('div', { 'class': 'ts-lan-filters', hidden: true, scroll: updateScrollFade }, [
 			E('div', { 'class': 'ts-refresh-options', role: 'group', 'aria-label': _('LAN devices') })
 		]);
 		var notices = E('div', { 'aria-live': 'polite' });
@@ -82,16 +83,19 @@ return view.extend({
 			])
 		]);
 
-		function updateLanFade() {
-			lanFilters.classList.toggle('ts-fade-left', lanFilters.scrollLeft > 1);
-			lanFilters.classList.toggle('ts-fade-right', lanFilters.scrollWidth - lanFilters.clientWidth - lanFilters.scrollLeft > 1);
+		function setScrollFade(element) {
+			element.classList.toggle('ts-fade-left', element.scrollLeft > 1);
+			element.classList.toggle('ts-fade-right', element.scrollWidth - element.clientWidth - element.scrollLeft > 1);
 		}
-		var lanObserver = new ResizeObserver(function() {
-			if (!page.isConnected) { lanObserver.disconnect(); return; }
-			updateLanFade();
+		function updateScrollFade(event) {
+			setScrollFade(event.currentTarget);
+		}
+		var scrollObserver = new ResizeObserver(function(entries) {
+			if (!page.isConnected) { scrollObserver.disconnect(); return; }
+			entries.forEach(function(entry) {
+				setScrollFade(entry.target === lanFilters.firstChild ? lanFilters : entry.target);
+			});
 		});
-		lanObserver.observe(lanFilters);
-		lanObserver.observe(lanFilters.firstChild);
 
 		function sortHeader(label, key) {
 			var active = sortKey === key;
@@ -99,7 +103,7 @@ return view.extend({
 				'aria-sort': active ? (sortDescending ? 'descending' : 'ascending') : 'none' }, [
 				E('button', { type: 'button', 'class': 'ts-sort', 'data-sort': key,
 					click: function() {
-						sortDescending = active ? !sortDescending : key !== 'address';
+						sortDescending = sortKey === key ? !sortDescending : key !== 'address';
 						sortKey = key;
 						update(latest);
 						devices.querySelector('[data-sort="' + key + '"]').focus({ preventScroll: true });
@@ -130,7 +134,7 @@ return view.extend({
 			lanFilters.querySelectorAll('button').forEach(function(button) {
 				button.setAttribute('aria-pressed', String(button.getAttribute('data-lan') === selectedLan));
 			});
-			requestAnimationFrame(updateLanFade);
+			requestAnimationFrame(function() { setScrollFade(lanFilters); });
 			var messages = [];
 			if (s.load_error)
 				messages.push(stats.notice(stats.errorMessage(s.load_error), 'error'));
@@ -213,52 +217,117 @@ return view.extend({
 					result = sortKey === 'address' ? left.localeCompare(right, undefined, { numeric: true }) : left < right ? -1 : left > right ? 1 : 0;
 				return (sortDescending ? -result : result) || a.id.localeCompare(b.id);
 			});
+			function setValue(element, value) {
+				if (typeof value === 'string') {
+					if (element.childNodes.length !== 1 || element.firstChild.nodeType !== 3 || element.textContent !== value)
+						element.textContent = value;
+				} else if (element.childNodes.length !== 1 || !element.firstChild.isEqualNode(value)) {
+					stats.replace(element, value);
+				}
+			}
 			if (!available) {
+				deviceRows.clear();
+				deviceTable = null;
+				emptyMessage = null;
 				stats.replace(devices, stats.empty(_('Waiting for the first sample'),
 					_('Enable and start collection to show current device usage. Saved usage is available on the History page.')));
 			} else {
-				var rows = list.map(function(device) {
-					var upload = rates['d_' + device.id + '_up'] || {}, download = rates['d_' + device.id + '_down'] || {};
-					return E('tr', {}, [
-						E('td', {}, [E('div', { 'class': 'ts-device-label' }, [
-							device.local ? E('span', { 'class': 'ts-local-badge' }, _('Local')) : null,
-							E('button', { type: 'button', 'class': 'ts-device-name', 'aria-label': _('Edit device name: %s').format(stats.displayName(device)),
-								click: function() { return stats.editDeviceName(device, function() { return Promise.resolve(inFlight).then(refresh); }); } }, [E('span', { 'class': 'ts-device-name-text' + (!device.custom_name && !device.hostname ? ' ts-monospace' : '') }, [stats.displayName(device)]), E('span', { 'class': 'ts-device-edit', 'aria-hidden': 'true' })])
-						].filter(Boolean))]),
-						E('td', { 'class': 'ts-mac' }, [device.mac || device.id]),
-						E('td', { 'class': 'ts-addresses' }, [E('div', { 'class': 'ts-cell-scroll', tabindex: '0' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') === -1; }).join(' / ') || placeholder()])]),
-						E('td', { 'class': 'ts-addresses' }, [E('div', { 'class': 'ts-cell-scroll', tabindex: '0' }, [(device.addresses || []).filter(function(address) { return address.indexOf(':') !== -1; }).join(' / ') || placeholder()])]),
-						E('td', { 'class': 'ts-numeric' }, rateValue(live && device.up ? upload.bytes_per_second : null)),
-						E('td', { 'class': 'ts-numeric' }, rateValue(live && device.down ? download.bytes_per_second : null)),
-						E('td', { 'class': 'ts-numeric' }, monthBytes('d_' + device.id + '_up')),
-						E('td', { 'class': 'ts-numeric' }, monthBytes('d_' + device.id + '_down')),
-						E('td', { 'class': 'ts-numeric' }, totalBytes('d_' + device.id))
+				if (!deviceTable) {
+					deviceTable = E('table', { 'class': 'ts-table' }, [
+						E('thead', {}, [ E('tr', {}, [
+							E('th', {}, _('Device')), E('th', {}, _('MAC address')), sortHeader(_('IPv4 address'), 'address'), E('th', {}, _('IPv6 address')),
+							sortHeader(_('Upload /s'), 'up_rate'), sortHeader(_('Download /s'), 'down_rate'),
+							sortHeader(_('Monthly upload'), 'up'), sortHeader(_('Monthly download'), 'down'), sortHeader(_('Monthly total'), 'total')
+						]) ]), E('tbody')
 					]);
+					stats.replace(devices, deviceTable);
+				}
+				deviceTable.querySelectorAll('[data-sort]').forEach(function(button) {
+					button.parentNode.setAttribute('aria-sort', button.getAttribute('data-sort') === sortKey ? (sortDescending ? 'descending' : 'ascending') : 'none');
 				});
-				if (!selectedLan) rows.push(E('tr', { 'class': 'ts-unknown' }, [
-					E('td', {}, [ E('strong', {}, _('Unidentified devices')) ]),
-					E('td', {}, placeholder()),
-					E('td', {}, placeholder()),
-					E('td', {}, placeholder()),
-					E('td', { 'class': 'ts-numeric' }, rateValue(live ? (rates.unknown_up || {}).bytes_per_second : null)),
-					E('td', { 'class': 'ts-numeric' }, rateValue(live ? (rates.unknown_down || {}).bytes_per_second : null)),
-					E('td', { 'class': 'ts-numeric' }, monthBytes('unknown_up')),
-					E('td', { 'class': 'ts-numeric' }, monthBytes('unknown_down')),
-					E('td', { 'class': 'ts-numeric' }, totalBytes('unknown'))
-				]));
-				var table = E('table', { 'class': 'ts-table' }, [
-					E('thead', {}, [ E('tr', {}, [
-						E('th', {}, _('Device')), E('th', {}, _('MAC address')), sortHeader(_('IPv4 address'), 'address'), E('th', {}, _('IPv6 address')),
-						sortHeader(_('Upload /s'), 'up_rate'), sortHeader(_('Download /s'), 'down_rate'),
-						sortHeader(_('Monthly upload'), 'up'), sortHeader(_('Monthly download'), 'down'), sortHeader(_('Monthly total'), 'total')
-					]) ]),
-					E('tbody', {}, rows)
-				]);
-				stats.replace(devices, list.length ? table : [
-					stats.empty(selectedLan ? _('No devices on this network') : _('No downstream devices found'), selectedLan ? '' : _('Check the LAN connection and device addresses. No usage can currently be attributed to a device.')),
-					table
-				]);
+				var visible = new Set(list.map(function(device) { return device.id; }));
+				if (!selectedLan) visible.add('unknown');
+				deviceRows.forEach(function(record, id) {
+					if (!visible.has(id)) { record.row.remove(); deviceRows.delete(id); }
+				});
+				var rows = list.map(function(device) {
+					var record = deviceRows.get(device.id);
+					if (!record) {
+						record = { device: device };
+						record.name = E('span', { 'class': 'ts-device-name-text', scroll: updateScrollFade });
+						record.badge = E('span', { 'class': 'ts-local-badge' }, _('Local'));
+						record.button = E('button', { type: 'button', 'class': 'ts-device-name',
+							click: function() { return stats.editDeviceName(record.device, function() { return Promise.resolve(inFlight).then(refresh); }); }
+						}, [record.name, E('span', { 'class': 'ts-device-edit', 'aria-hidden': 'true' })]);
+						record.addresses = [4, 6].map(function() {
+							return E('div', { 'class': 'ts-cell-scroll', tabindex: '0', scroll: updateScrollFade });
+						});
+						record.row = E('tr', { 'data-device': device.id }, [
+							E('td', {}, [E('div', { 'class': 'ts-device-label' }, [record.badge, record.button])]),
+							E('td', { 'class': 'ts-mac' }),
+							E('td', { 'class': 'ts-addresses' }, record.addresses[0]),
+							E('td', { 'class': 'ts-addresses' }, record.addresses[1])
+						].concat([0, 1, 2, 3, 4].map(function() { return E('td', { 'class': 'ts-numeric' }); })));
+						deviceRows.set(device.id, record);
+					}
+					record.device = device;
+					if (device.local && !record.badge.parentNode) record.button.before(record.badge);
+					else if (!device.local) record.badge.remove();
+					record.name.classList.toggle('ts-monospace', !device.custom_name && !device.hostname);
+					record.button.setAttribute('aria-label', _('Edit device name: %s').format(stats.displayName(device)));
+					setValue(record.name, stats.displayName(device));
+					setValue(record.row.cells[1], device.mac || device.id);
+					record.addresses.forEach(function(element, index) {
+						setValue(element, (device.addresses || []).filter(function(address) {
+							return (address.indexOf(':') !== -1) === (index === 1);
+						}).join(' / ') || placeholder());
+					});
+					var upload = rates['d_' + device.id + '_up'] || {}, download = rates['d_' + device.id + '_down'] || {};
+					[rateValue(live && device.up ? upload.bytes_per_second : null), rateValue(live && device.down ? download.bytes_per_second : null),
+						monthBytes('d_' + device.id + '_up'), monthBytes('d_' + device.id + '_down'), totalBytes('d_' + device.id)
+					].forEach(function(value, index) { setValue(record.row.cells[index + 4], value); });
+					return record.row;
+				});
+				if (!selectedLan) {
+					var unknown = deviceRows.get('unknown');
+					if (!unknown) {
+						unknown = { row: E('tr', { 'class': 'ts-unknown' }, [
+							E('td', {}, [E('strong', {}, _('Unidentified devices'))]),
+							E('td', {}, placeholder()), E('td', {}, placeholder()), E('td', {}, placeholder())
+						].concat([0, 1, 2, 3, 4].map(function() { return E('td', { 'class': 'ts-numeric' }); }))) };
+						deviceRows.set('unknown', unknown);
+					}
+					[rateValue(live ? (rates.unknown_up || {}).bytes_per_second : null), rateValue(live ? (rates.unknown_down || {}).bytes_per_second : null),
+						monthBytes('unknown_up'), monthBytes('unknown_down'), totalBytes('unknown')
+					].forEach(function(value, index) { setValue(unknown.row.cells[index + 4], value); });
+					rows.push(unknown.row);
+				}
+				var body = deviceTable.tBodies[0], next = body.firstChild;
+				rows.forEach(function(row) {
+					if (row !== next) {
+						if (body.moveBefore && row.parentNode === body) body.moveBefore(row, next);
+						else body.insertBefore(row, next);
+					}
+					next = row.nextSibling;
+				});
+				if (list.length && emptyMessage) { emptyMessage.remove(); emptyMessage = null; }
+				if (!list.length) {
+					var message = stats.empty(selectedLan ? _('No devices on this network') : _('No downstream devices found'), selectedLan ? '' : _('Check the LAN connection and device addresses. No usage can currently be attributed to a device.'));
+					if (!emptyMessage || !emptyMessage.isEqualNode(message)) {
+						if (emptyMessage) emptyMessage.remove();
+						emptyMessage = message;
+						devices.insertBefore(emptyMessage, deviceTable);
+					}
+				}
 			}
+			scrollObserver.disconnect();
+			scrollObserver.observe(lanFilters);
+			scrollObserver.observe(lanFilters.firstChild);
+			devices.querySelectorAll('.ts-device-name-text, .ts-cell-scroll').forEach(function(element) {
+				scrollObserver.observe(element);
+				setScrollFade(element);
+			});
+
 		}
 
 		function refresh() {
