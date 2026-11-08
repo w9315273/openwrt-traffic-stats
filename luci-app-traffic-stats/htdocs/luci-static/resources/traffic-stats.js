@@ -4,7 +4,6 @@
 'require ui';
 'require validation';
 
-// Replaced from the frontend Makefile when packaging.
 var packageVersion = '@TRAFFIC_STATS_VERSION@';
 
 var callStatus = rpc.declare({
@@ -211,7 +210,6 @@ async function editDeviceName(device, onSaved) {
 			E('div', {}, [remove,cancel,save])
 		])
 	]) ]);
-	// Let touch users inspect the rule before opening the on-screen keyboard.
 	if (writable && !window.matchMedia('(pointer: coarse)').matches) name.focus();
 }
 
