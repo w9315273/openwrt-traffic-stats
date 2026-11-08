@@ -218,6 +218,6 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-          make_latest: ${{ startsWith(github.ref, 'refs/tags/v') && 'true' || 'false' }}
+          make_latest: "false"
           fail_on_unmatched_files: true
           files: .local/dist/*.apk
