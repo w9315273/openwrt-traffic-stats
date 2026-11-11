@@ -2,6 +2,8 @@
 
 import time
 
+from .nft import device_counter_id
+
 MIN_WALL_MS = 1577836800000
 MAX_WALL_MS = 253402300800000
 MAX_SPLIT_MS = 86400000
@@ -169,6 +171,11 @@ def build_sample(previous, current, inventory, boot_id, wall_ms, mono_ms,
         if mono_valid and previous_clock_valid and not resumed and elapsed <= max_gap_ms:
             rate['bytes_per_second'] = byte_count * 1000.0 / elapsed
             rate['packets_per_second'] = packet_count * 1000.0 / elapsed
+        identity = device_counter_id(name)
+        # 继续更新检查点以正确计算重连增量, 但不为离线设备生成新的零用量明细.
+        if (identity and inventory is not None and identity[0] not in inventory.devices
+                and not byte_count and not packet_count):
+            continue
         if flags & UNCERTAIN:
             add_detail(name, wall_ms, byte_count, packet_count, flags, 0)
             if byte_count or packet_count or wall_ms != old['wall_ms']:

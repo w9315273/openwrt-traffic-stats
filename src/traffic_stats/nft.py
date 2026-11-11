@@ -326,10 +326,10 @@ def _reconcile(state, direction):
 
 
 def report(state, inventory=None):
-    identities = [device_counter_id(name)[0] for name in state.counters
-                  if (device_counter_id(name) or (None, None))[1] == "up"]
-    if inventory is not None:
-        identities.extend(identity for identity in inventory.devices if f"d_{identity}_up" not in state.counters)
+    # 历史设备由数据库元数据提供, 避免旧内核计数器让过期设备重新出现.
+    identities = (list(inventory.devices) if inventory is not None else
+                  [device_counter_id(name)[0] for name in state.counters
+                   if (device_counter_id(name) or (None, None))[1] == "up"])
     result = {"table_exists": state.exists, "table_owned": state.owned, "generation": state.generation,
               "flowtables_present": state.flowtables_present, "snapshot_atomic": False,
               "discovery_available": inventory is not None,

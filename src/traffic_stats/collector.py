@@ -16,6 +16,7 @@ from .runtime import clock_ms, read_id, read_runtime, set_timezone, write_runtim
 
 
 DISCOVERY_INTERVAL_MS = 30000
+CLOCK_STABLE_MS = 30000
 
 
 def _number(minimum, maximum):
@@ -196,6 +197,7 @@ class Collector:
         self.resumed = False
         self.first_sample = True
         self.pruning_allowed = True
+        self.clock_stable_since = None
         self.stopping = False
         self.result = 0
 
@@ -280,6 +282,13 @@ class Collector:
                 wall_ms, mono_ms, self.timezone, max(120000, options.interval * 2000), self.resumed)
             if not measured["clock_valid"] or measured["quality_flags"] & sample.CLOCK:
                 self.pruning_allowed = False
+                self.clock_stable_since = None
+            elif not self.pruning_allowed:
+                # 墙上时钟与单调时钟稳定一段时间后, 才恢复会删除历史的清理操作.
+                if self.clock_stable_since is None:
+                    self.clock_stable_since = mono_ms
+                elif mono_ms - self.clock_stable_since >= CLOCK_STABLE_MS:
+                    self.pruning_allowed = True
             if self.store:
                 step = "Stage history"
                 try:

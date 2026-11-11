@@ -60,8 +60,7 @@ def prepare(options):
             sync_directory(root)
         finally:
             Path(temporary).unlink(missing_ok=True)
-    if target.exists():
-        verified = store._readonly(target)
-        verified.close()
+    # 由 Store 统一校验已有库并初始化首次启动中断留下的空库,
+    # 避免提前只读校验将可恢复的空库拒绝.
     names.initialize(root / 'devices.json', name_source)
     options.database = str(target)

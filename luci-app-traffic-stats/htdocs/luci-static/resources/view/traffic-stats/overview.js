@@ -322,6 +322,7 @@ return view.extend({
 				}
 			}
 			if (!available) {
+				hideUnknown();
 				deviceRows.clear();
 				deviceTable = null;
 				emptyMessage = null;
