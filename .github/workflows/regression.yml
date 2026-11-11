@@ -1,0 +1,42 @@
+name: regression
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: 后端回归
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: 运行后端回归测试
+        run: make test-backend
+
+  frontend:
+    name: 前端回归
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: 安装浏览器测试依赖
+        run: |
+          python3 -m venv .local/ci-venv
+          .local/ci-venv/bin/python -m pip install -r tests/frontend/requirements.txt
+          .local/ci-venv/bin/python -m playwright install --with-deps chromium
+      - name: 运行前端回归测试
+        run: make test-frontend PYTHON=.local/ci-venv/bin/python

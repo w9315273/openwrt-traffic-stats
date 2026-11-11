@@ -16,7 +16,12 @@ env:
   PKG_DIR_NAME: luci-app-traffic-stats
 
 jobs:
+  regression:
+    name: 回归测试
+    uses: ./.github/workflows/regression.yml
+
   build:
+    needs: regression
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -112,7 +117,7 @@ jobs:
           SDK_ROOT="${RUNNER_TEMP}/traffic-stats-sdk"
           mkdir -p "$SDK_CACHE" "$SDK_ROOT"
           cd "$SDK_CACHE"
-          # Verify cached archives too; download again if missing or corrupt.
+          # 缓存也需校验, 缺失或损坏时重新下载.
           if ! printf '%s  %s\n' "$SDK_SHA" "$SDK_TARBALL" | sha256sum -c -; then
             curl -fSL --retry 3 "$SDK_URL" -o "$SDK_TARBALL"
           fi
@@ -157,7 +162,7 @@ jobs:
           CONFIG_ALL_NONSHARED=n
           CONFIG_PACKAGE_luci-app-traffic-stats=m
           CONFIG
-          # Follow the SDK's language aliases (for example zh_Hans -> zh-cn).
+          # 使用 SDK 的语言别名, 例如 zh_Hans -> zh-cn.
           python3 - <<'PYTHON'
           from pathlib import Path
           import os, re
@@ -179,7 +184,7 @@ jobs:
                   config.write(f'CONFIG_LUCI_LANG_{lang}=y\nCONFIG_PACKAGE_{package}=m\n')
           Path(os.environ['RUNNER_TEMP'], 'traffic-stats-packages').write_text('\n'.join(packages) + '\n')
           PYTHON
-          # Select only the frontend; its dependency must select the backend.
+          # 只选择前端, 验证后端能由依赖关系自动选中.
           make defconfig
           while IFS= read -r package; do
             grep -Eq "^CONFIG_PACKAGE_${package}=(y|m)$" .config || {
