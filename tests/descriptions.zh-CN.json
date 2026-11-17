@@ -1,0 +1,238 @@
+{
+  "CliTests": {
+    "test_offline_plan_and_no_commands": "离线生成规则计划且不执行系统命令",
+    "test_invalid_interface_rejected_before_nft": "调用 nft 前拒绝无效接口名称",
+    "test_foreign_table_protected": "保护不属于本插件的规则表",
+    "test_missing_discovery_does_not_apply": "设备发现失败时不应用规则",
+    "test_failed_apply_reports_failure": "规则应用失败时正确报告错误",
+    "test_fixture_cannot_authorize_live_apply": "测试快照不能授权修改真实规则",
+    "test_malformed_and_overflowing_json_rejected": "拒绝格式错误或数值溢出的 JSON",
+    "test_empty_status_is_explicit": "明确返回空状态",
+    "test_output_paths_cannot_overwrite_database_or_lock": "输出路径不能覆盖数据库或锁文件",
+    "test_history_missing_database_is_not_created": "查询历史时不创建缺失的数据库",
+    "test_runtime_invalid_time_is_stale_without_integer_overflow": "无效运行时间标记为过期且不会整数溢出",
+    "test_lock_excludes_other_writers": "写入锁阻止其他写入者",
+    "test_stop_cancels_read_without_starting_transaction": "停止时取消读取且不开始新事务"
+  },
+  "CollectorTests": {
+    "test_crash_recovery_exactly_once_and_history_queries": "崩溃恢复不重复计数且历史查询正常",
+    "test_failed_sampling_still_flushes_and_write_lock_recovers": "采样失败后仍刷新数据并恢复写入锁"
+  },
+  "SamplingTests": {
+    "test_baseline_rates_and_repeated_sample": "采样基线与速率正确且重复采样不重复累计",
+    "test_unsigned_precision_and_sql_delta_boundary": "保留无符号整数精度并校验 SQL 增量边界",
+    "test_counter_lifecycles_do_not_invent_old_history": "计数器生命周期变化不生成虚假旧历史",
+    "test_exact_midnight_split_and_fractional_timezone": "精确按午夜分割流量并支持非整点时区",
+    "test_dst_repeated_skipped_and_half_hour_transitions": "正确处理夏令时重复, 跳时及半小时切换",
+    "test_invalid_clock_defers_traffic_and_recovers": "时钟无效时暂存流量并在校正后恢复",
+    "test_clock_rollback_gap_resume_timezone_and_zero_traffic": "正确处理时钟回退, 采样中断, 时区变化及零流量",
+    "test_initial_invalid_clock_and_recovery": "启动时无效的时钟能够恢复"
+  },
+  "StoreTests": {
+    "test_commit_replay_restart_and_stale_checkpoint": "提交重放与重启正确处理过期检查点",
+    "test_busy_and_checkpoint_failure_preserve_atomic_pending_transaction": "数据库忙或检查点失败时保留待提交事务的原子性",
+    "test_uint64_checkpoint_and_delta_overflow": "校验 64 位无符号检查点和增量溢出",
+    "test_overflow_on_disk_rolls_back_new_hour_and_checkpoint": "磁盘数据溢出时回滚新增时间桶和检查点",
+    "test_clock_invalidation_and_pending_overflow": "正确处理时钟失效与待提交增量溢出",
+    "test_readonly_missing_unrelated_schema_and_escaped_filename": "只读访问正确处理缺失数据库, 外部结构及特殊文件名",
+    "test_events_devices_retention_and_query_bounds": "校验事件, 设备保留策略与查询边界",
+    "test_month_flags_truncation_and_large_integer_strings": "月统计保留质量标记, 截断状态和大整数字符串",
+    "test_version_one_database_preserves_totals_and_resumes_checkpoints": "旧版数据库升级后保留总量并恢复检查点"
+  },
+  "InterfaceConfigTests": {
+    "test_legacy_and_plural_precedence": "新旧接口配置的优先级正确",
+    "test_empty_disabled_valid_but_enabled_invalid": "停用时允许空接口配置, 启用时拒绝",
+    "test_overlaps_and_invalid_device_lists_rejected": "拒绝重叠或无效的设备列表",
+    "test_init_repeated_flags_and_legacy_fallback": "启动脚本支持重复接口参数与旧配置回退",
+    "test_init_rejects_overlap_and_invalid_list_item": "启动脚本拒绝接口重叠与无效列表项"
+  },
+  "ContainerRpcTests": {
+    "test_filtered_fields_and_no_configuration_dependency": "容器 RPC 只返回允许字段且不依赖配置",
+    "test_no_arbitrary_docker_requests_and_explicit_unavailability": "拒绝任意 Docker 请求并明确报告不可用状态"
+  },
+  "DetailTests": {
+    "test_half_hour_boundary_and_zero_coverage": "半小时时间桶边界与零覆盖时长正确",
+    "test_uncertain_gap_has_no_fabricated_coverage": "不确定的采样空档不生成虚假覆盖时长",
+    "test_timeline_dst_days": "历史时间轴正确处理夏令时日期",
+    "test_schema_one_upgrade_preserves_every_old_table": "旧版结构升级保留全部旧表"
+  },
+  "DockerTests": {
+    "test_names_validate_and_preserve_order": "容器名称校验正确且保留原有顺序",
+    "test_projected_batch_includes_dual_stack_published_listeners_and_stopped": "批量容器信息包含双栈地址, 映射端口及已停止容器",
+    "test_excluded_network_modes_never_enter_selection": "排除的网络模式不会进入容器选择列表",
+    "test_empty_success_differs_from_missing_or_unreachable_docker": "区分空容器列表与 Docker 缺失或不可达",
+    "test_disappearing_container_retries_changed_list_only": "容器消失后只对变化的列表重试",
+    "test_invalid_ids_and_malformed_metadata_fail_explicitly": "无效容器 ID 与错误元数据明确报错"
+  },
+  "HistoryRetentionTests": {
+    "test_migration_conserves_totals_flags_coverage_and_timezone": "历史迁移保留总量, 质量标记, 覆盖时长及时区",
+    "test_migration_failure_rolls_back_schema_and_data": "迁移失败时回滚结构和数据",
+    "test_calendar_month_cycles_and_legacy_units": "按自然月计算保留周期并兼容旧单位",
+    "test_expiry_preserves_current_month_and_counter_checkpoint": "过期清理保留当月数据和计数器检查点",
+    "test_three_month_window_advances_only_at_month_boundary": "三个月窗口仅在月份边界推进",
+    "test_unlimited_survives_restart_and_resumes_expiry_when_changed": "无限保留配置重启后有效且变更后恢复清理"
+  },
+  "I18nTests": {
+    "test_all_frontend_strings_have_chinese_translation": "所有前端文案均有中文翻译",
+    "test_backend_error_messages_are_english_and_codes_remain_stable": "后端错误信息保持英文且错误码稳定"
+  },
+  "LocalIdentityTests": {
+    "test_identity_saved_with_device_without_changing_client": "本机身份与设备一起保存且不改变客户端身份",
+    "test_failed_stage_does_not_replace_staged_identity": "暂存失败时不替换已暂存的身份",
+    "test_failed_flush_retries_identity_and_devices_together": "刷新失败后一起重试身份与设备数据",
+    "test_invalid_local_identity_is_not_persisted": "不持久化无效的本机身份"
+  },
+  "MonthlyTests": {
+    "test_month_boundary_flush_restart_and_large_totals": "跨月刷新, 重启和大流量累计正确",
+    "test_committed_cache_reuses_reads_while_pending_changes": "存在待提交变更时仍复用已提交缓存",
+    "test_failed_stage_and_flush_preserve_cache_until_retry": "暂存或刷新失败时保留缓存直到重试"
+  },
+  "MultiDiscoveryTests": {
+    "test_overlapping_addresses_are_scoped_and_names_still_loaded": "重叠地址按接口区分且仍加载设备名称",
+    "test_report_interfaces_follow_valid_bindings": "报告的接口遵循有效地址绑定",
+    "test_missing_lan_does_not_stop_other_interfaces": "单个 LAN 缺失不影响其他接口",
+    "test_cli_lists_deduplicate_and_reject_overlap": "命令行接口列表去重并拒绝重叠",
+    "test_local_identity_stays_one_across_different_lan_macs": "多个 LAN MAC 地址仍归属同一本机身份"
+  },
+  "MultiNftTests": {
+    "test_overlapping_addresses_have_separate_interface_keys": "重叠地址使用独立的接口键",
+    "test_legacy_map_upgrade_keeps_generation_and_named_counters": "旧映射升级保留代次和命名计数器",
+    "test_existing_scoped_schema_uses_flush_and_rejects_mixed_schema": "按接口划分的结构采用刷新并拒绝混合结构",
+    "test_invalid_interface_sets_and_unscoped_ambiguous_bindings_rejected": "拒绝无效接口集合与缺少接口范围的歧义绑定",
+    "test_proxy_and_local_paths_cover_all_configured_interfaces": "代理与本机流量路径覆盖全部配置接口"
+  },
+  "NamingTests": {
+    "test_combined_then_mac_then_ip_and_original_identity": "命名依次优先组合规则, MAC 和 IP, 并保留原始身份",
+    "test_combined_requires_both_and_offline_ip_does_not_match": "组合规则需同时满足条件且不匹配离线 IP",
+    "test_same_name_does_not_merge_distinct_devices": "同名设备不会被合并",
+    "test_ipv6_mac_case_and_rule_order": "正确处理 IPv6, MAC 大小写和规则顺序",
+    "test_bad_rules_are_skipped_not_used_as_wildcards": "跳过无效规则且不将其作为通配符",
+    "test_removing_rule_clears_custom_name_and_preserves_hostname": "移除规则后清除自定义名称并保留主机名"
+  },
+  "JsonStorageTests": {
+    "test_unicode_crud_revision_and_permissions": "Unicode 名称增删改查, 修订号和文件权限正确",
+    "test_failed_atomic_write_preserves_original": "原子写入失败时保留原文件",
+    "test_bad_json_is_never_overwritten": "不覆盖无效的 JSON 文件",
+    "test_existing_destination_wins_on_move": "迁移时优先使用已存在的目标文件"
+  },
+  "DiscoveryTests": {
+    "test_leases_validate_expiration_addresses_and_identity": "校验租约过期时间, 地址与身份",
+    "test_dual_stack_and_usable_neighbor_states": "正确处理双栈地址与可用邻居状态",
+    "test_conflict_is_sticky_until_stronger_or_fresh_observation": "地址冲突持续保留直到更可靠或更新的观测出现",
+    "test_oversized_and_injectable_records_are_ignored": "忽略超长或可能注入命令的记录",
+    "test_io_failure_does_not_commit_partial_inventory": "读取失败时不提交不完整的设备清单",
+    "test_hostname_uses_byte_bound": "按字节限制主机名长度"
+  },
+  "NetlinkTests": {
+    "test_native_dump_parses_kernel_attributes": "原生 Netlink 查询正确解析内核属性",
+    "test_other_interfaces_senders_and_sequences_are_ignored": "忽略其他接口, 发送者和序列号的响应",
+    "test_failed_dump_keeps_previous_snapshot": "查询失败时保留上一份快照"
+  },
+  "NftTests": {
+    "test_new_table_plan_and_address_conflicts": "新规则表计划正确处理地址冲突",
+    "test_existing_counters_are_preserved_and_strings_remain_exact": "保留已有计数器和精确的数值字符串",
+    "test_reconciliation_includes_retained_devices": "流量核对包含保留的设备",
+    "test_unowned_and_injectable_inputs_never_create_plan": "外部规则表或含注入内容的输入不生成计划",
+    "test_counter_numeric_bounds_and_types": "校验计数器数值范围与类型",
+    "test_incompatible_managed_structure_is_rejected": "拒绝不兼容的插件规则结构",
+    "test_inventory_values_cannot_inject_nft_syntax": "设备清单字段不能注入 nft 语法"
+  },
+  "SignatureTests": {
+    "test_counts_and_other_tables_do_not_change_configuration_signature": "计数变化和其他规则表不改变配置签名",
+    "test_maps_counters_and_rule_order_change_signature": "映射, 计数器及规则顺序变化会更新签名",
+    "test_object_and_element_iteration_order_are_not_configuration": "对象及元素遍历顺序不影响配置签名",
+    "test_bad_map_elements_fail_validation": "无效映射元素无法通过校验"
+  },
+  "PollingTests": {
+    "test_one_table_read_per_fast_sample_and_exact_thirty_second_audit": "快速采样只读一次规则表且按 30 秒周期审查",
+    "test_hostname_refresh_updates_metadata_without_writing_nft": "主机名刷新只更新元数据而不写入 nft",
+    "test_binding_listener_and_interface_changes_apply_then_read": "地址绑定, 监听端口与接口变化先应用再读取",
+    "test_empty_container_selection_never_queries_docker": "未选择容器时不查询 Docker",
+    "test_missing_selected_container_clears_endpoints_without_using_other_containers": "所选容器消失时清除端点且不使用其他容器",
+    "test_selected_container_addresses_and_listeners_refresh_without_polling_docker_each_sample": "刷新所选容器地址和监听端口且不在每次采样查询 Docker",
+    "test_rule_and_map_flush_repair_immediately_without_resetting_counters": "规则或映射被清空后立即修复且不重置计数器",
+    "test_deleted_table_is_recreated_during_next_fast_sample": "规则表删除后在下次快速采样时重建",
+    "test_flowtable_audit_result_survives_table_only_samples": "仅读表的采样仍保留流表审查结果",
+    "test_discovery_failures_retry_without_committing_partial_metadata": "设备发现失败后重试且不提交部分元数据",
+    "test_docker_unavailable_at_start_retries_and_recovers": "启动时 Docker 不可用能够重试并恢复",
+    "test_docker_outage_removes_stale_endpoints_without_losing_samples": "Docker 中断时移除过期端点且不丢失采样",
+    "test_apply_failure_does_not_cache_the_unapplied_configuration": "应用失败时不缓存未生效的配置",
+    "test_failed_post_apply_read_does_not_publish_or_advance_checkpoints": "应用后读取失败时不发布数据或推进检查点",
+    "test_failed_fast_and_fallback_reads_preserve_last_good_sample": "快速读取及回退读取失败时保留最后一次有效采样",
+    "test_stage_failure_retries_delta_and_discovery_metadata_together": "暂存失败后一起重试增量和设备发现元数据",
+    "test_monthly_query_failure_does_not_recount_staged_traffic": "月统计查询失败不会重复累计已暂存流量"
+  },
+  "ProcessTests": {
+    "test_concurrent_pipe_io_does_not_deadlock": "并发读写管道不会死锁",
+    "test_arguments_are_literal_and_exit_failure_is_reported": "参数按字面量传递且退出失败会被报告",
+    "test_output_bound_also_applies_when_discarding_stdout": "丢弃标准输出时仍限制输出大小",
+    "test_timeout_and_cancellation_terminate_the_child": "超时或取消会终止子进程",
+    "test_json_numbers_remain_exact_and_invalid_values_are_rejected": "JSON 数值保留精度且拒绝无效值"
+  },
+  "RuntimeTests": {
+    "test_failed_publication_keeps_previous_file_and_removes_temporary": "发布失败时保留旧文件并清理临时文件",
+    "test_runtime_from_another_boot_is_stale_even_with_live_pid": "其他启动周期的运行数据即使 PID 存活也标记为过期",
+    "test_readonly_history_handles_uri_delimiters_without_creating_missing_files": "只读历史查询支持 URI 分隔字符且不创建缺失文件"
+  },
+  "ProxyTests": {
+    "test_normalization_and_duplicate_addresses": "代理地址规范化与去重正确",
+    "test_invalid_targets_rejected_before_rule_generation": "生成规则前拒绝无效代理目标",
+    "test_uci_list_and_cli_use_same_container_names": "UCI 列表与命令行使用一致的容器名称",
+    "test_local_listener_removal_preserves_counters_and_empty_chains": "移除本机监听端点时保留计数器和空链"
+  },
+  "ReviewRecoveryTests": {
+    "test_offline_final_delta_zero_history_and_expiry": "离线设备最终增量, 零流量历史和过期清理正确",
+    "test_reconnect_uses_recent_checkpoint_not_entire_absence": "设备重连从最近检查点恢复而非整个离线期间",
+    "test_final_offline_delta_survives_stage_and_flush_retry": "离线前最后增量在暂存和刷新重试后仍保留",
+    "test_discovered_idle_device_still_records_coverage": "已发现的空闲设备仍记录覆盖时长",
+    "test_missing_inventory_does_not_mean_device_is_offline": "设备清单缺失不会被视为设备离线",
+    "test_clock_step_recovers_only_after_stable_period": "时钟跳变后仅在稳定一段时间后恢复",
+    "test_invalid_clock_never_enables_pruning": "时钟无效时不启用历史清理"
+  },
+  "RouterTests": {
+    "test_local_identity_addresses_and_own_address_priority": "本机身份, 地址和自有地址优先级正确",
+    "test_ipv6_only_and_non_ethernet_do_not_break_discovery": "仅有 IPv6 或非以太网接口时设备发现仍正常"
+  },
+  "StorageRecoveryTests": {
+    "test_first_initialization_failure_recovers_without_removing_file": "首次初始化失败可恢复且无需删除文件",
+    "test_uninitialized_sqlite_header_also_recovers": "仅有未初始化 SQLite 文件头时也能恢复",
+    "test_unrelated_database_is_rejected_without_changing_existing_data": "拒绝无关数据库且不改变已有数据",
+    "test_incompatible_metadata_without_tables_is_not_treated_as_empty": "只有不兼容元数据的数据库不会被当作空数据库",
+    "test_corrupt_database_is_rejected_without_overwriting_it": "拒绝损坏的数据库且不覆盖原文件",
+    "test_valid_migration_preserves_history": "有效迁移保留历史数据",
+    "test_invalid_migration_source_is_not_copied": "不复制无效的迁移源",
+    "test_existing_target_takes_precedence_over_migration_source": "已存在的目标数据库优先于迁移源"
+  },
+  "RpcTests": {
+    "test_list_exposes_only_narrow_methods": "RPC 仅公开必要的方法",
+    "test_config_uses_two_native_typed_uci_reads": "配置通过两次原生 UCI 读取保留正确类型",
+    "test_invalid_configuration_never_becomes_defaults": "无效配置不会被当作默认配置",
+    "test_missing_runtime_is_available_as_state_without_fabricated_counts": "运行数据缺失时返回明确状态且不伪造计数",
+    "test_live_runtime_keeps_uint64_strings_and_reports_saved_devices": "运行状态保留 64 位整数字符串并报告已保存设备",
+    "test_json_name_rpc_crud_conflict_and_malformed_file": "名称 RPC 正确处理增删改查, 冲突和损坏文件",
+    "test_names_from_json_are_display_only_and_invalid_rules_are_isolated": "JSON 名称只用于显示且无效规则被隔离",
+    "test_bad_runtime_still_returns_configuration": "运行数据无效时仍返回配置",
+    "test_history_absence_does_not_create_database": "历史数据缺失时不创建数据库",
+    "test_history_formats_saved_timezone_and_preserves_quality": "历史按保存的时区格式化且保留质量信息",
+    "test_request_types_dates_ranges_paths_and_actions_are_restricted": "限制请求类型, 日期, 范围, 路径及操作",
+    "test_service_control_executes_only_literal_actions": "服务控制只执行允许的字面操作",
+    "test_unrelated_database_is_not_modified": "不修改无关数据库",
+    "test_rows_and_known_devices_are_explicitly_truncated": "行数与已知设备超限时明确标记截断",
+    "test_response_limit_returns_complete_json_error": "响应超限时返回完整的 JSON 错误"
+  },
+  "OverviewTests": {
+    "test_filtering_keeps_totals_and_places_empty_message_below_table": "设备筛选保留总量且空结果提示位于表格下方",
+    "test_preferences_survive_reload_and_invalid_interfaces_reset": "刷新页面后保留偏好且无效接口自动重置",
+    "test_row_heights_and_mobile_overflow": "表格行高一致且移动端不会横向溢出",
+    "test_refresh_preserves_scroll_selection_focus_and_uses_current_device": "刷新保留滚动, 文本选择和焦点且使用当前设备信息",
+    "test_rows_added_removed_and_service_recovery": "设备行增删与服务恢复正确",
+    "test_footer_uses_package_version_and_project_link": "页脚显示软件包版本和正确的项目链接"
+  },
+  "TooltipTests": {
+    "test_unattributed_bubble_tracks_only_horizontal_movement": "未归属流量提示框仅跟随鼠标水平移动",
+    "test_unattributed_touch_toggle_outside_scroll_and_legacy_click": "未归属流量提示框正确响应触屏, 外部点击及滚动",
+    "test_unattributed_tooltip_closes_when_row_disappears": "设备行消失时关闭未归属流量提示框",
+    "test_collection_status_mouse_does_not_pin": "鼠标点击采集状态不会固定提示框",
+    "test_collection_status_touch_pin_refresh_unpin_and_outside": "触屏采集状态支持固定, 刷新, 取消及外部关闭"
+  }
+}

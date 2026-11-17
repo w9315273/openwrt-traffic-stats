@@ -26,10 +26,10 @@ test-backend: export TMPDIR := $(TEST_TMP_DIR)
 test-backend test-frontend: export PYTHONDONTWRITEBYTECODE := 1
 
 test-backend: all | $(TEST_TMP_DIR)
-	$(PYTHON) -m unittest discover -s tests/backend -p 'test_python_*.py'
-	$(PYTHON) tests/backend/test_cli.py $(BUILD_DIR)/traffic-statsd
-	$(PYTHON) tests/backend/test_collector.py $(BUILD_DIR)/traffic-statsd
-	$(PYTHON) tests/backend/test_rpc.py $(BUILD_DIR)/traffic-stats-rpc
+	@$(PYTHON) tests/run-python.py --label '后端' discover tests/backend --pattern 'test_python_*.py'
+	@$(PYTHON) tests/run-python.py --label '命令行' file tests/backend/test_cli.py $(BUILD_DIR)/traffic-statsd
+	@$(PYTHON) tests/run-python.py --label '采集器' file tests/backend/test_collector.py $(BUILD_DIR)/traffic-statsd
+	@$(PYTHON) tests/run-python.py --label 'RPC ' file tests/backend/test_rpc.py $(BUILD_DIR)/traffic-stats-rpc
 
 test-frontend: | $(TEST_TMP_DIR)
-	$(PYTHON) -m unittest discover -s tests/frontend -p 'test_*.py'
+	@$(PYTHON) tests/run-python.py --label '浏览器' discover tests/frontend
